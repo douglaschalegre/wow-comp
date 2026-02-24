@@ -5,10 +5,9 @@ import type {
 } from "@/lib/telegram/query-digest-data";
 
 const MAX_MESSAGE_LENGTH = 3900;
-const TOP_ROWS_LIMIT = 10;
-const TOP_MOVERS_LIMIT = 5;
-const MILESTONES_LIMIT = 8;
-const WARNINGS_LIMIT = 8;
+const TOP_ROWS_LIMIT = 8;
+const MILESTONES_LIMIT = 4;
+const WARNINGS_LIMIT = 5;
 
 function formatUtcDate(date: Date): string {
   return `${date.toISOString().slice(0, 10)} (UTC)`;
@@ -23,6 +22,10 @@ function formatScore(value: number): string {
   return value.toFixed(2);
 }
 
+function formatItemLevel(value: number): string {
+  return value.toFixed(1);
+}
+
 function characterLabel(row: { characterName: string; region: "US" | "EU"; realmSlug: string }): string {
   return `${row.characterName} (${row.region}/${row.realmSlug})`;
 }
@@ -32,13 +35,15 @@ function rankLabel(rank: number | null): string {
 }
 
 function renderLeaderboardRow(row: DigestLeaderboardRow): string {
-  return `${rankLabel(row.rank)}. ${characterLabel(row)} | Score ${formatScore(row.totalScore)} | Δ ${formatSigned(
+  return `#${rankLabel(row.rank)} ${characterLabel(row)} | score ${formatScore(row.totalScore)} (${formatSigned(
     row.dailyDelta
-  )}`;
+  )}) | lvl ${row.level} | ilvl ${formatItemLevel(row.itemLevel)} | m+ ${Math.round(
+    row.mythicPlusRating
+  )} (best ${row.bestKeyLevel})`;
 }
 
 function renderMilestoneLine(line: DigestMilestoneLine): string {
-  return `${rankLabel(line.rank)}. ${characterLabel(line)} | ${line.text} | score Δ ${formatSigned(line.dailyDelta)}`;
+  return `#${rankLabel(line.rank)} ${characterLabel(line)}: ${line.text}`;
 }
 
 function withOverflowSuffix(lines: string[], limit: number): string[] {
@@ -67,43 +72,36 @@ function truncateMessage(text: string, maxLength = MAX_MESSAGE_LENGTH): string {
 export function formatTelegramDigest(data: DigestData, leagueName: string): string {
   const lines: string[] = [];
 
-  lines.push(leagueName);
-  lines.push(`Snapshot: ${formatUtcDate(data.snapshotDate)}`);
+  lines.push(`${leagueName} | ${formatUtcDate(data.snapshotDate)}`);
 
   const pollParts = [`Poll: ${data.pollSummary.status}`];
+  if (data.variant === "standings") {
+    pollParts.push(`chars=${data.rows.length}`);
+  }
   if (typeof data.pollSummary.warningCount === "number") {
-    pollParts.push(`warnings=${data.pollSummary.warningCount}`);
+    pollParts.push(`warn=${data.pollSummary.warningCount}`);
   }
   if (typeof data.pollSummary.errorCount === "number") {
-    pollParts.push(`errors=${data.pollSummary.errorCount}`);
+    pollParts.push(`err=${data.pollSummary.errorCount}`);
   }
   lines.push(pollParts.join(" | "));
 
   if (data.variant === "poll_failure") {
     lines.push("");
-    lines.push("Failure Summary");
-    lines.push(data.failureMessage);
+    lines.push(`Failure: ${data.failureMessage}`);
     return truncateMessage(lines.join("\n"));
   }
 
-  lines.push(`Score Profile: ${data.scoreProfile.name} v${data.scoreProfile.version}`);
-
-  const sectionLines: string[] = [];
-  sectionLines.push(...withOverflowSuffix(data.rows.map(renderLeaderboardRow), TOP_ROWS_LIMIT));
+  lines.push(`Profile: ${data.scoreProfile.name} v${data.scoreProfile.version}`);
 
   lines.push("");
-  pushSection(lines, "Top Leaderboard", sectionLines.length > 0 ? sectionLines : ["No leaderboard rows found."]);
-
-  const movers = withOverflowSuffix(data.topMovers.map(renderLeaderboardRow), TOP_MOVERS_LIMIT);
-  if (movers.length > 0) {
-    lines.push("");
-    pushSection(lines, "Top Movers", movers);
-  }
+  const statusLines = withOverflowSuffix(data.rows.map(renderLeaderboardRow), TOP_ROWS_LIMIT);
+  pushSection(lines, "Status", statusLines.length > 0 ? statusLines : ["No leaderboard rows found."]);
 
   const milestones = withOverflowSuffix(data.milestones.map(renderMilestoneLine), MILESTONES_LIMIT);
   if (milestones.length > 0) {
     lines.push("");
-    pushSection(lines, "Notable Milestones", milestones);
+    pushSection(lines, "Changes", milestones);
   }
 
   const warnings = withOverflowSuffix(data.warnings, WARNINGS_LIMIT);

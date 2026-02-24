@@ -22,6 +22,10 @@ export interface DigestLeaderboardRow {
   realmSlug: string;
   totalScore: number;
   dailyDelta: number;
+  level: number;
+  itemLevel: number;
+  mythicPlusRating: number;
+  bestKeyLevel: number;
 }
 
 export interface DigestMilestoneLine {
@@ -94,6 +98,10 @@ function asNumber(value: unknown): number | undefined {
   return undefined;
 }
 
+function asFiniteNumber(value: unknown, fallback = 0): number {
+  return asNumber(value) ?? fallback;
+}
+
 function asStringArray(value: unknown): string[] {
   return asArray(value)
     .map((item) => asString(item))
@@ -162,6 +170,22 @@ function buildPollWarnings(results: ParsedPollJobResult[]): string[] {
 
 function parseMilestones(value: Prisma.JsonValue): string[] {
   return asStringArray(value);
+}
+
+function parseStatusMetrics(value: Prisma.JsonValue): {
+  level: number;
+  itemLevel: number;
+  mythicPlusRating: number;
+  bestKeyLevel: number;
+} {
+  const record = asRecord(value);
+
+  return {
+    level: asFiniteNumber(record?.level, 0),
+    itemLevel: asFiniteNumber(record?.averageItemLevel, 0),
+    mythicPlusRating: asFiniteNumber(record?.mythicPlusSeasonScore, 0),
+    bestKeyLevel: asFiniteNumber(record?.mythicPlusBestRunLevel, 0)
+  };
 }
 
 function rankSortValue(rank: number | null): number {
@@ -237,6 +261,11 @@ export async function queryDigestData(snapshotDate: Date): Promise<DigestData> {
       totalScore: true,
       dailyDelta: true,
       snapshotId: true,
+      snapshot: {
+        select: {
+          normalizedMetricsJson: true
+        }
+      },
       trackedCharacter: {
         select: {
           characterName: true,
@@ -248,14 +277,22 @@ export async function queryDigestData(snapshotDate: Date): Promise<DigestData> {
     orderBy: [{ rank: "asc" }, { totalScore: "desc" }, { trackedCharacter: { characterName: "asc" } }]
   });
 
-  const rows: DigestLeaderboardRow[] = scores.map((score) => ({
-    rank: score.rank,
-    characterName: score.trackedCharacter.characterName,
-    region: score.trackedCharacter.region,
-    realmSlug: score.trackedCharacter.realmSlug,
-    totalScore: score.totalScore,
-    dailyDelta: score.dailyDelta
-  }));
+  const rows: DigestLeaderboardRow[] = scores.map((score) => {
+    const metrics = parseStatusMetrics(score.snapshot.normalizedMetricsJson);
+
+    return {
+      rank: score.rank,
+      characterName: score.trackedCharacter.characterName,
+      region: score.trackedCharacter.region,
+      realmSlug: score.trackedCharacter.realmSlug,
+      totalScore: score.totalScore,
+      dailyDelta: score.dailyDelta,
+      level: metrics.level,
+      itemLevel: metrics.itemLevel,
+      mythicPlusRating: metrics.mythicPlusRating,
+      bestKeyLevel: metrics.bestKeyLevel
+    };
+  });
 
   const scoreMetaBySnapshotId = new Map(
     scores.map((score) => [
@@ -274,6 +311,7 @@ export async function queryDigestData(snapshotDate: Date): Promise<DigestData> {
         },
         select: {
           toSnapshotId: true,
+          fromSnapshotId: true,
           milestonesJson: true,
           trackedCharacter: {
             select: {
@@ -290,6 +328,7 @@ export async function queryDigestData(snapshotDate: Date): Promise<DigestData> {
   for (const delta of deltas) {
     const scoreMeta = scoreMetaBySnapshotId.get(delta.toSnapshotId);
     if (!scoreMeta) continue;
+    if (!delta.fromSnapshotId) continue;
 
     for (const milestone of parseMilestones(delta.milestonesJson)) {
       milestones.push({
