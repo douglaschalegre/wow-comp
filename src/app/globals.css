@@ -5,16 +5,18 @@
 :root {
   --font-display: "Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   --font-body: "Iowan Old Style", "Palatino Linotype", Baskerville, "Times New Roman", serif;
-  --bg-ink: #0f100f;
-  --bg-parchment: #e7dcc6;
-  --bg-panel: rgba(15, 16, 15, 0.78);
-  --edge-brass: #9d7b3f;
-  --edge-bright: #cfb36b;
-  --text-main: #f7f0de;
-  --text-muted: rgba(247, 240, 222, 0.72);
-  --good: #7fd9b6;
-  --bad: #ff8d8d;
-  --shadow-heavy: 0 24px 90px rgba(0, 0, 0, 0.48);
+  --bg-ink: #050813;
+  --bg-deep: #081228;
+  --bg-panel: rgba(10, 15, 34, 0.78);
+  --edge-brass: #b89a5a;
+  --edge-bright: #e0c58a;
+  --edge-moon: #8bdfff;
+  --edge-moon-soft: rgba(139, 223, 255, 0.35);
+  --text-main: #eef6ff;
+  --text-muted: rgba(213, 229, 250, 0.74);
+  --good: #7df2c5;
+  --bad: #ff9fae;
+  --shadow-heavy: 0 24px 90px rgba(2, 7, 20, 0.62);
 }
 
 html,
@@ -28,9 +30,10 @@ body {
   font-family: var(--font-body), serif;
   color: var(--text-main);
   background:
-    radial-gradient(circle at 18% 12%, rgba(211, 179, 104, 0.2), transparent 45%),
-    radial-gradient(circle at 80% 18%, rgba(93, 147, 144, 0.18), transparent 35%),
-    linear-gradient(180deg, #17130f 0%, #0f100f 60%, #0a0a0b 100%);
+    radial-gradient(circle at 12% 8%, rgba(124, 232, 255, 0.16), transparent 38%),
+    radial-gradient(circle at 88% 14%, rgba(99, 143, 255, 0.18), transparent 42%),
+    radial-gradient(circle at 55% 120%, rgba(224, 197, 138, 0.08), transparent 44%),
+    linear-gradient(180deg, #0b1022 0%, #070b17 45%, #04070f 100%);
   letter-spacing: 0.01em;
 }
 
@@ -39,11 +42,26 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.08;
+  opacity: 0.11;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 60%, rgba(139, 223, 255, 0.1) 0 1px, transparent 1.5px),
+    linear-gradient(rgba(139, 223, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 223, 255, 0.05) 1px, transparent 1px);
+  background-size: 140px 140px, 180px 180px, 52px 52px, 52px 52px;
+  background-position: 0 0, 20px 40px, 0 0, 0 0;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(139, 223, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 50% 120%, rgba(224, 197, 138, 0.05), transparent 46%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
 }
 
 @media (prefers-reduced-motion: reduce) {
