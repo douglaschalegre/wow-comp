@@ -20,6 +20,7 @@ enum Faction {
 enum JobType {
   POLL
   REBUILD_LEADERBOARD
+  DIGEST
 }
 
 enum JobStatus {
@@ -27,6 +28,16 @@ enum JobStatus {
   SUCCESS
   PARTIAL_FAILURE
   FAILED
+}
+
+enum TelegramDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum TelegramMessageType {
+  DAILY_DIGEST
 }
 
 model TrackedCharacter {
@@ -124,14 +135,36 @@ model LeaderboardScore {
 }
 
 model JobRun {
-  id         String    @id @default(cuid())
-  jobType    JobType   @map("job_type")
-  status     JobStatus
-  snapshotDate DateTime? @map("snapshot_date")
-  startedAt  DateTime  @default(now()) @map("started_at")
-  finishedAt DateTime? @map("finished_at")
-  detailsJson Json?    @map("details_json")
+  id                String            @id @default(cuid())
+  jobType            JobType           @map("job_type")
+  status             JobStatus
+  snapshotDate       DateTime?         @map("snapshot_date")
+  startedAt          DateTime          @default(now()) @map("started_at")
+  finishedAt         DateTime?         @map("finished_at")
+  detailsJson        Json?             @map("details_json")
+  telegramDeliveries TelegramDelivery[]
 
   @@index([jobType, startedAt])
   @@map("job_runs")
+}
+
+model TelegramDelivery {
+  id               String                @id @default(cuid())
+  jobRunId         String                @map("job_run_id")
+  chatId           String                @map("chat_id")
+  messageType      TelegramMessageType   @map("message_type")
+  deliveryDate     DateTime              @map("delivery_date")
+  messageText      String                @map("message_text")
+  telegramMessageId String?              @map("telegram_message_id")
+  status           TelegramDeliveryStatus
+  sentAt           DateTime?             @map("sent_at")
+  errorJson        Json?                 @map("error_json")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  jobRun           JobRun                @relation(fields: [jobRunId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, messageType, deliveryDate], map: "telegram_deliveries_daily_unique")
+  @@index([deliveryDate])
+  @@index([status])
+  @@index([jobRunId])
+  @@map("telegram_deliveries")
 }
