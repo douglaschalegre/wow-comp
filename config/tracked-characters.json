@@ -16,6 +16,22 @@
       "faction": "ALLIANCE",
       "active": true,
       "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
+    },
+    {
+      "region": "US",
+      "realmSlug": "tichondrius",
+      "characterName": "Jinzo",
+      "faction": "ALLIANCE",
+      "active": false,
+      "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
+    },
+    {
+      "region": "US",
+      "realmSlug": "stormrage",
+      "characterName": "Arthrael",
+      "faction": "ALLIANCE",
+      "active": false,
+      "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
     }
   ]
 }
