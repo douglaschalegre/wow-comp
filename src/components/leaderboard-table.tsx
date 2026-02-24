@@ -106,6 +106,16 @@ function factionAccentClass(faction: FactionCode | null) {
   return "bg-[color:var(--line-strong)]";
 }
 
+function leadBadgeClass(faction: FactionCode | null) {
+  if (faction === "HORDE") {
+    return "border-[rgba(251,113,133,0.55)] bg-[rgba(251,113,133,0.14)] text-[#fda4af]";
+  }
+  if (faction === "ALLIANCE") {
+    return "border-[rgba(96,165,250,0.6)] bg-[rgba(96,165,250,0.14)] text-[#93c5fd]";
+  }
+  return "border-[color:var(--line-strong)] bg-black text-zinc-200";
+}
+
 function CharacterPortrait({
   portraitUrl,
   characterName
@@ -280,7 +290,11 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
                               {row.characterName}
                             </span>
                             {row.rank === 1 ? (
-                              <span className="shrink-0 rounded-full border border-[color:var(--line-strong)] bg-black px-2 py-[2px] text-[0.65rem] uppercase tracking-[0.12em] text-zinc-200">
+                              <span
+                                className={`shrink-0 rounded-full border px-2 py-[2px] text-[0.65rem] uppercase tracking-[0.12em] ${leadBadgeClass(
+                                  row.faction
+                                )}`}
+                              >
                                 Lead
                               </span>
                             ) : null}
