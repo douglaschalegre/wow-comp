@@ -20,9 +20,9 @@
     {
       "region": "US",
       "realmSlug": "tichondrius",
-      "characterName": "Jinzo",
+      "characterName": "Jínzo",
       "faction": "ALLIANCE",
-      "active": false,
+      "active": true,
       "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
     },
     {
@@ -30,7 +30,7 @@
       "realmSlug": "stormrage",
       "characterName": "Arthrael",
       "faction": "ALLIANCE",
-      "active": false,
+      "active": true,
       "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
     }
   ]
