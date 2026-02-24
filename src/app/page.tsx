@@ -55,7 +55,7 @@ export default async function HomePage() {
       <div className="mx-auto grid w-full max-w-[1200px] gap-[1.2rem]">
         <section
           aria-labelledby="league-title"
-          className="relative overflow-hidden rounded-[18px] border border-[rgba(207,179,107,0.35)] bg-[rgba(8,9,10,0.72)] px-[1.1rem] pb-[1.2rem] pt-[1.1rem] shadow-heavy md:px-[1.25rem] md:pb-[1.35rem] md:pt-[1.2rem]"
+          className="relative overflow-hidden rounded-[18px] border border-[rgba(207,179,107,0.35)] bg-[rgba(8,9,10,0.72)] px-[1.1rem] pb-[1.2rem] pt-[1.1rem] [box-shadow:var(--shadow-heavy)] md:px-[1.25rem] md:pb-[1.35rem] md:pt-[1.2rem]"
           style={{
             backgroundImage:
               "linear-gradient(135deg, rgba(231,220,198,0.06), transparent 45%), linear-gradient(0deg, rgba(8,9,10,0.72), rgba(8,9,10,0.72))"
@@ -73,7 +73,7 @@ export default async function HomePage() {
           </div>
           <h1
             id="league-title"
-            className="mb-1 mt-[0.35rem] font-display text-[clamp(1.9rem,4vw,3rem)] leading-[1.03] tracking-[0.02em]"
+            className="mb-1 mt-[0.35rem] text-[clamp(1.9rem,4vw,3rem)] leading-[1.03] tracking-[0.02em] [font-family:var(--font-display),serif]"
             style={{ textWrap: "balance" }}
           >
             Progress League Leaderboard
@@ -107,11 +107,11 @@ export default async function HomePage() {
         {loadError ? (
           <section
             aria-labelledby="load-error-heading"
-            className="rounded-[18px] border border-[rgba(207,179,107,0.22)] bg-[rgba(12,12,13,0.78)] p-4 shadow-heavy"
+            className="rounded-[18px] border border-[rgba(207,179,107,0.22)] bg-[rgba(12,12,13,0.78)] p-4 [box-shadow:var(--shadow-heavy)]"
           >
             <h2
               id="load-error-heading"
-              className="mb-[0.35rem] font-display text-[1.05rem] uppercase tracking-[0.08em]"
+              className="mb-[0.35rem] text-[1.05rem] uppercase tracking-[0.08em] [font-family:var(--font-display),serif]"
             >
               Leaderboard Load Error
             </h2>
