@@ -1,0 +1,232 @@
+.tablePanel {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(207, 179, 107, 0.22);
+  background: rgba(12, 12, 13, 0.78);
+  box-shadow: var(--shadow-heavy);
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid rgba(207, 179, 107, 0.16);
+  background: linear-gradient(180deg, rgba(207, 179, 107, 0.05), transparent);
+}
+
+.tableTitle {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  letter-spacing: 0.06em;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+
+.tableHint {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.tableWrap {
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 1480px;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  padding: 0.8rem 0.75rem;
+  border-bottom: 1px solid rgba(207, 179, 107, 0.12);
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 0.8rem 0.75rem;
+  border-bottom: 1px solid rgba(207, 179, 107, 0.07);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: rgba(231, 220, 198, 0.03);
+}
+
+.rankBadge {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(207, 179, 107, 0.24);
+  background: rgba(207, 179, 107, 0.08);
+  font-family: var(--font-display), serif;
+}
+
+.charCell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.charIdentity {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.charPortrait {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(207, 179, 107, 0.2);
+  background:
+    radial-gradient(circle at 24% 20%, rgba(231, 220, 198, 0.14), transparent 68%),
+    rgba(12, 12, 13, 0.7);
+  box-shadow:
+    inset 0 0 0 1px rgba(8, 9, 10, 0.3),
+    0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.charPortraitImage {
+  display: block;
+  object-fit: cover;
+}
+
+.charPortraitFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f1d27d;
+  font-family: var(--font-display), serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.charName {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.charMeta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.factionHeader {
+  text-align: center !important;
+}
+
+.factionCell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.factionBadge {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(231, 220, 198, 0.18);
+  background: rgba(231, 220, 198, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(8, 9, 10, 0.28);
+}
+
+.factionGlyph {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.factionHorde {
+  color: #f28b7c;
+  border-color: rgba(242, 139, 124, 0.28);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(242, 139, 124, 0.18), transparent 70%),
+    rgba(91, 26, 23, 0.18);
+}
+
+.factionAlliance {
+  color: #7db7ff;
+  border-color: rgba(125, 183, 255, 0.28);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(125, 183, 255, 0.18), transparent 70%),
+    rgba(17, 44, 89, 0.18);
+}
+
+.factionFallback {
+  color: rgba(247, 240, 222, 0.45);
+  font-size: 0.85rem;
+}
+
+.numCell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreValue {
+  color: #f7e2aa;
+  font-family: var(--font-display), serif;
+  font-size: 1.03rem;
+  white-space: nowrap;
+}
+
+.deltaUp {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.deltaDown {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.deltaFlat {
+  color: var(--text-muted);
+}
+
+.deltaNew {
+  color: #f1d27d;
+  font-weight: 700;
+}
+
+.deltaUnavailable {
+  color: rgba(247, 240, 222, 0.45);
+}
+
+.emptyPanel {
+  border-radius: 14px;
+  border: 1px solid rgba(207, 179, 107, 0.16);
+  background: rgba(12, 12, 13, 0.55);
+  padding: 1rem;
+}
+
+.emptyTitle {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display), serif;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.emptyText code {
+  color: #f7e2aa;
+}

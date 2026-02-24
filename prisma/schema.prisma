@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Region {
+  US
+  EU
+}
+
+enum Faction {
+  HORDE
+  ALLIANCE
+}
+
+enum JobType {
+  POLL
+  REBUILD_LEADERBOARD
+}
+
+enum JobStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL_FAILURE
+  FAILED
+}
+
+model TrackedCharacter {
+  id                 String                 @id @default(cuid())
+  region             Region
+  realmSlug          String                 @map("realm_slug")
+  characterName      String                 @map("character_name")
+  characterNameLower String                 @map("character_name_lower")
+  characterId        String?                @map("character_id")
+  portraitUrl        String?                @map("portrait_url")
+  faction            Faction?
+  active             Boolean                @default(true)
+  notes              String?
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  snapshots          CharacterSnapshot[]
+  deltas             CharacterMetricDelta[]
+  scores             LeaderboardScore[]
+
+  @@unique([region, realmSlug, characterNameLower], map: "tracked_characters_unique_lookup")
+  @@index([active])
+  @@map("tracked_characters")
+}
+
+model CharacterSnapshot {
+  id                  String                 @id @default(cuid())
+  trackedCharacterId  String                 @map("tracked_character_id")
+  snapshotDate        DateTime               @map("snapshot_date")
+  polledAt            DateTime               @default(now()) @map("polled_at")
+  rawProfileJson      Json                   @map("raw_profile_json")
+  rawProgressJson     Json                   @map("raw_progress_json")
+  normalizedMetricsJson Json                 @map("normalized_metrics_json")
+  sourceVersion       Int                    @default(1) @map("source_version")
+  trackedCharacter    TrackedCharacter       @relation(fields: [trackedCharacterId], references: [id], onDelete: Cascade)
+  deltasFrom          CharacterMetricDelta[] @relation("DeltaFromSnapshot")
+  deltasTo            CharacterMetricDelta[] @relation("DeltaToSnapshot")
+  scores              LeaderboardScore[]
+
+  @@unique([trackedCharacterId, snapshotDate], map: "character_snapshots_daily_unique")
+  @@index([snapshotDate])
+  @@map("character_snapshots")
+}
+
+model CharacterMetricDelta {
+  id               String            @id @default(cuid())
+  trackedCharacterId String          @map("tracked_character_id")
+  fromSnapshotId   String?           @map("from_snapshot_id")
+  toSnapshotId     String            @unique(map: "character_metric_deltas_to_snapshot_unique") @map("to_snapshot_id")
+  deltaJson        Json              @map("delta_json")
+  milestonesJson   Json              @map("milestones_json")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  trackedCharacter TrackedCharacter  @relation(fields: [trackedCharacterId], references: [id], onDelete: Cascade)
+  fromSnapshot     CharacterSnapshot? @relation("DeltaFromSnapshot", fields: [fromSnapshotId], references: [id], onDelete: SetNull)
+  toSnapshot       CharacterSnapshot @relation("DeltaToSnapshot", fields: [toSnapshotId], references: [id], onDelete: Cascade)
+
+  @@index([trackedCharacterId])
+  @@map("character_metric_deltas")
+}
+
+model ScoreProfile {
+  id                    String           @id @default(cuid())
+  name                  String
+  version               Int              @default(1)
+  sourceHash            String           @unique @map("source_hash")
+  weightsJson           Json             @map("weights_json")
+  normalizationCapsJson Json             @map("normalization_caps_json")
+  filtersJson           Json             @map("filters_json")
+  isActive              Boolean          @default(true) @map("is_active")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+  scores                LeaderboardScore[]
+
+  @@index([isActive])
+  @@map("score_profiles")
+}
+
+model LeaderboardScore {
+  id               String            @id @default(cuid())
+  trackedCharacterId String          @map("tracked_character_id")
+  snapshotId       String            @map("snapshot_id")
+  scoreProfileId   String            @map("score_profile_id")
+  totalScore       Float             @map("total_score")
+  dailyDelta       Float             @default(0) @map("daily_delta")
+  rank             Int?
+  breakdownJson    Json              @map("breakdown_json")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  trackedCharacter TrackedCharacter  @relation(fields: [trackedCharacterId], references: [id], onDelete: Cascade)
+  snapshot         CharacterSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  scoreProfile     ScoreProfile      @relation(fields: [scoreProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([trackedCharacterId, snapshotId, scoreProfileId], map: "leaderboard_scores_unique")
+  @@index([snapshotId, scoreProfileId])
+  @@index([scoreProfileId, rank])
+  @@map("leaderboard_scores")
+}
+
+model JobRun {
+  id         String    @id @default(cuid())
+  jobType    JobType   @map("job_type")
+  status     JobStatus
+  snapshotDate DateTime? @map("snapshot_date")
+  startedAt  DateTime  @default(now()) @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  detailsJson Json?    @map("details_json")
+
+  @@index([jobType, startedAt])
+  @@map("job_runs")
+}

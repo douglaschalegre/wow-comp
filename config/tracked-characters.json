@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "characters": [
+    {
+      "region": "US",
+      "realmSlug": "tichondrius",
+      "characterName": "herseter",
+      "faction": "HORDE",
+      "active": true,
+      "notes": "Example placeholder entry. Set active=true and replace with a real character."
+    },
+    {
+      "region": "US",
+      "realmSlug": "tol-barad",
+      "characterName": "nadruk",
+      "faction": "ALLIANCE",
+      "active": true,
+      "notes": "Example placeholder entry. Duplicate entries are rejected by config validation."
+    }
+  ]
+}
