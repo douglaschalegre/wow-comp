@@ -1,6 +1,6 @@
 import { runPollJob } from "../src/jobs/poll";
 
-async function main() {
+async function main(): Promise<void> {
   const result = await runPollJob();
   console.log(JSON.stringify(result, null, 2));
 }

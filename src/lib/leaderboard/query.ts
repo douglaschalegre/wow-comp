@@ -35,6 +35,8 @@ export interface LeaderboardRowView {
   itemLevel: number;
   mythicPlusRating: number;
   bestKeyLevel: number;
+  completedQuestCount: number;
+  reputationProgressTotal: number;
   totalScore: number;
   rankChange: RankChange;
   dailyDelta: number;
@@ -285,6 +287,8 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
         itemLevel: metrics.averageItemLevel,
         mythicPlusRating: metrics.mythicPlusSeasonScore,
         bestKeyLevel: metrics.mythicPlusBestRunLevel,
+        completedQuestCount: metrics.completedQuestCount,
+        reputationProgressTotal: metrics.reputationProgressTotal,
         totalScore: score.totalScore,
         rankChange,
         dailyDelta: score.dailyDelta,

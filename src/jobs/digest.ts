@@ -47,6 +47,8 @@ type DeliveryClaimResult =
       deliveryId: string;
     };
 
+type TelegramDeliveryUniqueWhere = Prisma.TelegramDeliveryWhereUniqueInput;
+
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
@@ -69,14 +71,14 @@ function serializeError(error: unknown): Record<string, unknown> {
   };
 }
 
-function buildDeliveryWhere(chatId: string, deliveryDate: Date) {
+function buildDeliveryWhere(chatId: string, deliveryDate: Date): TelegramDeliveryUniqueWhere {
   return {
     chatId_messageType_deliveryDate: {
       chatId,
       messageType: TelegramMessageType.DAILY_DIGEST,
       deliveryDate
     }
-  } as const;
+  };
 }
 
 async function claimTelegramDeliverySlot(params: {
@@ -158,7 +160,7 @@ async function claimTelegramDeliverySlot(params: {
   }
 }
 
-async function markDeliveryFailed(deliveryId: string, error: unknown) {
+async function markDeliveryFailed(deliveryId: string, error: unknown): Promise<void> {
   await prisma.telegramDelivery.update({
     where: { id: deliveryId },
     data: {

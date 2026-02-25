@@ -3,7 +3,16 @@ import { getLatestLeaderboardView } from "@/lib/leaderboard/query";
 
 export const dynamic = "force-dynamic";
 
-function formatDate(value: Date | null) {
+type HomePageData = Awaited<ReturnType<typeof getLatestLeaderboardView>>;
+
+const EMPTY_HOME_PAGE_DATA: HomePageData = {
+  snapshotDate: null,
+  rows: [],
+  lastJob: null,
+  scoreProfile: null
+};
+
+function formatDate(value: Date | null): string {
   if (!value) return "No snapshots yet";
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
@@ -12,7 +21,7 @@ function formatDate(value: Date | null) {
   }).format(value);
 }
 
-function formatSnapshotDate(value: Date | null) {
+function formatSnapshotDate(value: Date | null): string {
   if (!value) return "No snapshot data";
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
@@ -20,28 +29,21 @@ function formatSnapshotDate(value: Date | null) {
   }).format(value);
 }
 
-function jobStatusClass(status: string | null) {
+function jobStatusClass(status: string | null): string {
   if (!status) return "text-[color:var(--muted)]";
   if (status === "SUCCESS") return "text-white";
   if (status === "PARTIAL_FAILURE") return "text-zinc-200";
   return "text-white";
 }
 
-export default async function HomePage() {
-  let data:
-    | Awaited<ReturnType<typeof getLatestLeaderboardView>>
-    | {
-        snapshotDate: null;
-        rows: [];
-        lastJob: null;
-        scoreProfile: null;
-      };
+export default async function HomePage(): Promise<React.JSX.Element> {
+  let data: HomePageData = EMPTY_HOME_PAGE_DATA;
   let loadError: string | null = null;
 
   try {
     data = await getLatestLeaderboardView();
   } catch (error) {
-    data = { snapshotDate: null, rows: [], lastJob: null, scoreProfile: null };
+    data = EMPTY_HOME_PAGE_DATA;
     loadError = error instanceof Error ? error.message : String(error);
   }
 
@@ -155,8 +157,8 @@ export default async function HomePage() {
 
           <div className="grid gap-3 border-t border-[color:var(--line)] p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:px-5">
             <p className="m-0 text-[0.9rem] leading-relaxed text-[color:var(--muted)]">
-              Score remains the weighted ranking metric. Delta columns track day-over-day movement
-              in position, score, quests, and reputation.
+              Score remains the weighted ranking metric. Rank, quests, and reputation include
+              current values with deltas inline when available.
             </p>
             <div className="inline-flex flex-wrap gap-2 text-[0.75rem] uppercase tracking-[0.14em] text-[color:var(--muted)]">
               <span className="rounded-full border border-[color:var(--line)] bg-black px-3 py-1">

@@ -1,10 +1,10 @@
 import type { NormalizedCharacterMetrics, ScoreBreakdown, ScoreProfileConfig } from "@/lib/types";
 
-function clamp(value: number, min: number, max: number) {
+function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function normalizedPercent(value: number, cap: number) {
+function normalizedPercent(value: number, cap: number): number {
   if (!Number.isFinite(value) || !Number.isFinite(cap) || cap <= 0) {
     return 0;
   }
@@ -60,4 +60,3 @@ export function scoreCharacter(
     warnings
   };
 }
-

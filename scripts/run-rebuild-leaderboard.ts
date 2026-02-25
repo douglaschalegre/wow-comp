@@ -1,6 +1,6 @@
 import { runRebuildLeaderboardJob } from "../src/jobs/rebuild-leaderboard";
 
-async function main() {
+async function main(): Promise<void> {
   const result = await runRebuildLeaderboardJob();
   console.log(JSON.stringify(result, null, 2));
 }

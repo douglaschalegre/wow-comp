@@ -4,6 +4,7 @@ import { runPollJob } from "./poll";
 
 type DailyAutomationMode = "send" | "dry_run";
 type DailyPollStatus = "SUCCESS" | "PARTIAL_FAILURE" | "FAILED" | "ERROR";
+type DailyDigestMode = "send" | "preview";
 
 export interface DailyAutomationRunOptions {
   dryRun?: boolean;
@@ -60,7 +61,7 @@ export async function runDailyAutomation(
   const startedAt = new Date();
   const baseSnapshotDate = startOfUtcDay(startedAt);
   const mode: DailyAutomationMode = options.dryRun ? "dry_run" : "send";
-  const digestMode = options.dryRun ? "preview" : "send";
+  const digestMode: DailyDigestMode = options.dryRun ? "preview" : "send";
 
   let pollResult: PollJobResult | undefined;
   let pollError: string | undefined;
@@ -75,9 +76,8 @@ export async function runDailyAutomation(
 
   let digestResult: DigestRunResult | undefined;
   let digestError: string | undefined;
-  const digestSnapshotDate = pollResult
-    ? parsePollSnapshotDate(pollResult.snapshotDate)
-    : baseSnapshotDate;
+  const pollSnapshotDate = pollResult ? parsePollSnapshotDate(pollResult.snapshotDate) : undefined;
+  const digestSnapshotDate = pollSnapshotDate ?? baseSnapshotDate;
 
   try {
     digestResult = await runDigestJob({
@@ -88,8 +88,8 @@ export async function runDailyAutomation(
     digestError = serializeErrorMessage(error);
   }
 
-  const snapshotDate =
-    digestResult?.snapshotDate ?? (pollResult ? formatUtcDate(parsePollSnapshotDate(pollResult.snapshotDate)) : formatUtcDate(baseSnapshotDate));
+  const fallbackSnapshotDate = formatUtcDate(pollSnapshotDate ?? baseSnapshotDate);
+  const snapshotDate = digestResult?.snapshotDate ?? fallbackSnapshotDate;
   const finishedAt = new Date();
 
   return {

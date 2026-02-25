@@ -5,7 +5,7 @@ import { getCronSecret } from "@/lib/env";
 
 export const runtime = "nodejs";
 
-function noStoreJson(body: unknown, status: number) {
+function noStoreJson(body: unknown, status: number): NextResponse {
   return NextResponse.json(body, {
     status,
     headers: {
@@ -43,7 +43,7 @@ function serializeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const cronSecret = getCronSecret();
   if (!cronSecret) {
     return noStoreJson(
@@ -69,8 +69,6 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await runDailyAutomation({ dryRun });
-    const status = result.ok ? 200 : 500;
-
     const logPayload = {
       event: "daily_cron_run",
       ok: result.ok,
@@ -88,7 +86,7 @@ export async function GET(request: NextRequest) {
       console.error(logPayload);
     }
 
-    return noStoreJson(result, status);
+    return noStoreJson(result, result.ok ? 200 : 500);
   } catch (error) {
     const message = serializeError(error);
     console.error({

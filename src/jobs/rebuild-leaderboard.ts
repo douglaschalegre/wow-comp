@@ -5,6 +5,12 @@ import { prisma } from "@/lib/db/prisma";
 import { scoreCharacter } from "@/lib/scoring/score-character";
 import type { NormalizedCharacterMetrics, ScoreProfileConfig } from "@/lib/types";
 
+export interface RebuildLeaderboardJobResult {
+  rebuilt: number;
+  snapshotDate: string | null;
+  scoreProfileId?: string;
+}
+
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
@@ -52,7 +58,7 @@ async function upsertActiveScoreProfile(scoreProfile: ScoreProfileConfig) {
   return profile;
 }
 
-export async function runRebuildLeaderboardJob() {
+export async function runRebuildLeaderboardJob(): Promise<RebuildLeaderboardJobResult> {
   const jobRun = await prisma.jobRun.create({
     data: {
       jobType: JobType.REBUILD_LEADERBOARD,

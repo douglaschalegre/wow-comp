@@ -243,6 +243,18 @@ function extractCharacterPortraitUrl(characterMedia: unknown): string | null {
   return null;
 }
 
+function deriveJobRunStatus(successCount: number, errorCount: number): JobStatus {
+  if (errorCount === 0) {
+    return JobStatus.SUCCESS;
+  }
+
+  if (successCount > 0) {
+    return JobStatus.PARTIAL_FAILURE;
+  }
+
+  return JobStatus.FAILED;
+}
+
 export async function runPollJob(): Promise<PollJobResult> {
   const snapshotDate = startOfUtcDay();
   const snapshotDateIso = snapshotDate.toISOString();
@@ -441,8 +453,7 @@ export async function runPollJob(): Promise<PollJobResult> {
       results
     };
 
-    const status =
-      errorCount === 0 ? JobStatus.SUCCESS : successCount > 0 ? JobStatus.PARTIAL_FAILURE : JobStatus.FAILED;
+    const status = deriveJobRunStatus(successCount, errorCount);
 
     await prisma.jobRun.update({
       where: { id: jobRun.id },

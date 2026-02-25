@@ -15,6 +15,8 @@ export interface LeaderboardTableRowUi {
   itemLevel: number;
   mythicPlusRating: number;
   bestKeyLevel: number;
+  completedQuestCount: number;
+  reputationProgressTotal: number;
   totalScore: number;
   rankChange: number | "NEW" | null;
   dailyDelta: number;
@@ -27,6 +29,11 @@ interface LeaderboardTableProps {
   rows: LeaderboardTableRowUi[];
 }
 
+interface CharacterPortraitProps {
+  portraitUrl: string | null;
+  characterName: string;
+}
+
 const TH_CLASS =
   "sticky top-0 z-[1] whitespace-nowrap border-b border-[color:var(--line-strong)] bg-black px-3 py-2.5 text-left text-[0.68rem] font-medium uppercase tracking-[0.16em] text-[color:var(--muted)]";
 
@@ -34,7 +41,11 @@ const TD_CLASS = "border-b border-[color:var(--line)] px-3 py-3 align-middle";
 
 const TD_NUM_CLASS = `${TD_CLASS} whitespace-nowrap text-center tabular-nums [font-family:var(--font-mono),monospace]`;
 
-function formatUtcDateTime(iso: string) {
+const WHOLE_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0
+});
+
+function formatUtcDateTime(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "--";
   return new Intl.DateTimeFormat("en-US", {
@@ -44,19 +55,26 @@ function formatUtcDateTime(iso: string) {
   }).format(date);
 }
 
-function formatSigned(value: number, digits = 0) {
+function formatSigned(value: number, digits = 0): string {
   const rounded = Number(value.toFixed(digits));
   const fixed = rounded.toFixed(digits);
   if (rounded > 0) return `+${fixed}`;
   return fixed;
 }
 
-function formatSignedNullable(value: number | null, digits = 0) {
-  if (value === null) return "--";
-  return formatSigned(value, digits);
+function formatSignedInteger(value: number): string {
+  const rounded = Math.round(value);
+  const abs = WHOLE_NUMBER_FORMATTER.format(Math.abs(rounded));
+  if (rounded > 0) return `+${abs}`;
+  if (rounded < 0) return `-${abs}`;
+  return "0";
 }
 
-function formatRankChange(value: number | "NEW" | null) {
+function formatWholeNumber(value: number): string {
+  return WHOLE_NUMBER_FORMATTER.format(Math.round(value));
+}
+
+function formatRankChange(value: number | "NEW" | null): string {
   if (value === "NEW") return "NEW";
   if (value === null) return "--";
   if (value === 0) return "0";
@@ -69,14 +87,14 @@ function toneClass(
   neutralClass: string,
   posClass: string,
   negClass: string
-) {
+): string {
   if (value === null) return unavailableClass;
   if (value > 0) return posClass;
   if (value < 0) return negClass;
   return neutralClass;
 }
 
-function rankToneClass(value: number | "NEW" | null) {
+function rankToneClass(value: number | "NEW" | null): string {
   if (value === "NEW") return "text-white font-semibold";
   if (value === null) return "text-[color:var(--dim)]";
   if (value > 0) return "text-white font-semibold";
@@ -84,29 +102,29 @@ function rankToneClass(value: number | "NEW" | null) {
   return "text-[color:var(--muted)]";
 }
 
-function formatBestKey(level: number) {
+function formatBestKey(level: number): string {
   return level > 0 ? `+${Math.round(level)}` : "--";
 }
 
-function characterInitial(name: string) {
+function characterInitial(name: string): string {
   const trimmed = name.trim();
   return (trimmed[0] ?? "?").toUpperCase();
 }
 
-function rankBadgeClass(rank: number | null) {
+function rankBadgeClass(rank: number | null): string {
   if (rank === 1) return "border-white bg-white text-black";
   if (rank === 2) return "border-zinc-300 bg-zinc-900 text-zinc-100";
   if (rank === 3) return "border-zinc-600 bg-zinc-950 text-zinc-200";
   return "border-[color:var(--line-strong)] bg-[color:var(--panel-2)] text-zinc-100";
 }
 
-function factionAccentClass(faction: FactionCode | null) {
+function factionAccentClass(faction: FactionCode | null): string {
   if (faction === "HORDE") return "bg-[color:var(--horde)]";
   if (faction === "ALLIANCE") return "bg-[color:var(--alliance)]";
   return "bg-[color:var(--line-strong)]";
 }
 
-function leadBadgeClass(faction: FactionCode | null) {
+function leadBadgeClass(faction: FactionCode | null): string {
   if (faction === "HORDE") {
     return "border-[rgba(251,113,133,0.55)] bg-[rgba(251,113,133,0.14)] text-[#fda4af]";
   }
@@ -119,10 +137,7 @@ function leadBadgeClass(faction: FactionCode | null) {
 function CharacterPortrait({
   portraitUrl,
   characterName
-}: {
-  portraitUrl: string | null;
-  characterName: string;
-}) {
+}: CharacterPortraitProps): React.JSX.Element {
   const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
@@ -152,7 +167,7 @@ function CharacterPortrait({
   );
 }
 
-export function LeaderboardTable({ rows }: LeaderboardTableProps) {
+export function LeaderboardTable({ rows }: LeaderboardTableProps): React.JSX.Element {
   return (
     <section
       aria-labelledby="leaderboard-heading"
@@ -171,8 +186,8 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
               Current Standings
             </h2>
             <p className="mt-1.5 max-w-[72ch] text-[0.9rem] leading-relaxed text-[color:var(--muted)]">
-              Score is the weighted ranking metric. Delta columns show day-over-day movement across
-              rank, score, quests, and reputation.
+              Score is the weighted ranking metric. Rank, quests, and reputation show current
+              values with day-over-day deltas when available.
             </p>
           </div>
 
@@ -206,19 +221,22 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
                 Character
               </th>
               {[
-                "Level",
-                "ilvl",
-                "M+ Rating",
-                "Best Key",
-                "Score",
-                "Rank Δ",
-                "Score Δ",
-                "Quest Δ",
-                "Rep Δ",
-                "Updated (UTC)"
-              ].map((label) => (
-                <th key={label} scope="col" className={TH_CLASS}>
-                  {label}
+                { label: "Level", centered: true },
+                { label: "ilvl", centered: true },
+                { label: "M+ Rating", centered: true },
+                { label: "Best Key", centered: true },
+                { label: "Score", centered: true },
+                { label: "Score Δ", centered: true },
+                { label: "Quests", centered: true },
+                { label: "Rep", centered: true },
+                { label: "Updated (UTC)", centered: false }
+              ].map((column) => (
+                <th
+                  key={column.label}
+                  scope="col"
+                  className={column.centered ? `${TH_CLASS} text-center` : TH_CLASS}
+                >
+                  {column.label}
                 </th>
               ))}
             </tr>
@@ -227,7 +245,7 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={12}>
+                <td colSpan={11}>
                   <div className="m-4 border border-dashed border-[color:var(--line-strong)] bg-black p-5">
                     <h3 className="mb-1 text-[0.95rem] uppercase tracking-[0.08em] text-white [font-family:var(--font-display),serif]">
                       No Leaderboard Data Yet
@@ -255,13 +273,24 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
                 return (
                   <tr key={row.trackedCharacterId} className={`${striped} ${rowHover} transition-colors`}>
                     <td className={TD_CLASS}>
-                      <span
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-[0.9rem] [font-family:var(--font-display),serif] ${rankBadgeClass(
-                          row.rank
-                        )}`}
-                      >
-                        {row.rank ?? "-"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-[0.9rem] [font-family:var(--font-display),serif] ${rankBadgeClass(
+                            row.rank
+                          )}`}
+                        >
+                          {row.rank ?? "-"}
+                        </span>
+                        {row.rankChange !== null ? (
+                          <span
+                            className={`text-[0.78rem] tracking-[0.06em] [font-family:var(--font-mono),monospace] ${rankToneClass(
+                              row.rankChange
+                            )}`}
+                          >
+                            {formatRankChange(row.rankChange)}
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
 
                     <td className={TD_CLASS}>
@@ -323,9 +352,6 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
                       {row.totalScore.toFixed(2)}
                     </td>
 
-                    <td className={`${TD_NUM_CLASS} ${rankToneClass(row.rankChange)}`}>
-                      {formatRankChange(row.rankChange)}
-                    </td>
                     <td
                       className={`${TD_NUM_CLASS} ${toneClass(
                         row.dailyDelta,
@@ -337,27 +363,43 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps) {
                     >
                       {formatSigned(row.dailyDelta, 2)}
                     </td>
-                    <td
-                      className={`${TD_NUM_CLASS} ${toneClass(
-                        row.questDelta,
-                        deltaMissing,
-                        deltaNeutral,
-                        deltaPos,
-                        deltaNeg
-                      )}`}
-                    >
-                      {formatSignedNullable(row.questDelta, 0)}
+                    <td className={TD_NUM_CLASS}>
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="text-zinc-100">{formatWholeNumber(row.completedQuestCount)}</span>
+                        {row.questDelta !== null ? (
+                          <span
+                            className={`text-[0.76rem] ${toneClass(
+                              row.questDelta,
+                              deltaMissing,
+                              deltaNeutral,
+                              deltaPos,
+                              deltaNeg
+                            )}`}
+                          >
+                            ({formatSignedInteger(row.questDelta)})
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
-                    <td
-                      className={`${TD_NUM_CLASS} ${toneClass(
-                        row.reputationDelta,
-                        deltaMissing,
-                        deltaNeutral,
-                        deltaPos,
-                        deltaNeg
-                      )}`}
-                    >
-                      {formatSignedNullable(row.reputationDelta, 0)}
+                    <td className={TD_NUM_CLASS}>
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="text-zinc-100">
+                          {formatWholeNumber(row.reputationProgressTotal)}
+                        </span>
+                        {row.reputationDelta !== null ? (
+                          <span
+                            className={`text-[0.76rem] ${toneClass(
+                              row.reputationDelta,
+                              deltaMissing,
+                              deltaNeutral,
+                              deltaPos,
+                              deltaNeg
+                            )}`}
+                          >
+                            ({formatSignedInteger(row.reputationDelta)})
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
 
                     <td className={`${TD_CLASS} whitespace-nowrap text-[0.8rem] text-[color:var(--muted)]`}>

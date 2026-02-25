@@ -16,7 +16,7 @@ async function runOptionalEndpoint(
   }
 }
 
-function characterPath(character: TrackedCharacterConfig, suffix = "") {
+function characterPath(character: TrackedCharacterConfig, suffix = ""): string {
   const realm = encodeURIComponent(character.realmSlug.toLowerCase());
   const name = encodeURIComponent(character.characterName.toLowerCase());
   return `/profile/wow/character/${realm}/${name}${suffix}`;
@@ -25,7 +25,7 @@ function characterPath(character: TrackedCharacterConfig, suffix = "") {
 async function fetchCompletedQuestsWithFallback(
   client: BlizzardClient,
   character: TrackedCharacterConfig
-) {
+): Promise<unknown> {
   try {
     return await client.profileJson(character.region, characterPath(character, "/quests/completed"));
   } catch (error) {
@@ -40,7 +40,7 @@ async function fetchMythicSeasonIfConfigured(
   client: BlizzardClient,
   character: TrackedCharacterConfig,
   scoreProfile: ScoreProfileConfig
-) {
+): Promise<unknown> {
   const seasonId = scoreProfile.filters.mythicSeasonIds[0];
   if (!seasonId) {
     return undefined;

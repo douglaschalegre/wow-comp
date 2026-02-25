@@ -44,7 +44,7 @@ function parseArgs(argv: string[]): DigestRunOptions & { help?: boolean } {
   return options;
 }
 
-async function main() {
+async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
 
   if (options.help) {

@@ -15,11 +15,16 @@ const serverEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+export interface BlizzardCredentials {
+  clientId: string;
+  clientSecret: string;
+}
+
 export function getServerEnv(): ServerEnv {
   return serverEnvSchema.parse(process.env);
 }
 
-export function requireBlizzardCredentials() {
+export function requireBlizzardCredentials(): BlizzardCredentials {
   const env = getServerEnv();
   if (!env.BLIZZARD_CLIENT_ID || !env.BLIZZARD_CLIENT_SECRET) {
     throw new Error(
@@ -50,6 +55,12 @@ export interface TelegramDigestConfig {
   leagueName: string;
 }
 
+export interface TelegramDigestSendConfig {
+  botToken: string;
+  chatId: string;
+  leagueName: string;
+}
+
 export function getTelegramDigestConfig(): TelegramDigestConfig {
   const env = getServerEnv();
 
@@ -61,7 +72,7 @@ export function getTelegramDigestConfig(): TelegramDigestConfig {
   };
 }
 
-export function requireTelegramDigestSendConfig() {
+export function requireTelegramDigestSendConfig(): TelegramDigestSendConfig {
   const config = getTelegramDigestConfig();
 
   if (!config.enabled) {
