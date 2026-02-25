@@ -46,6 +46,37 @@ See `/Users/douglas/code/pers/wow-comp/docs/deferred-admin-telegram-plan.md`.
 - `TELEGRAM_CHAT_ID` (required for `--send`)
 - `TELEGRAM_LEAGUE_NAME` (optional, defaults to `WoW Midnight League`)
 
+## Vercel Cron (Daily Poll + Telegram Digest)
+
+This repo supports a Vercel Cron-triggered Vercel Function at `GET /api/jobs/daily` that runs:
+
+1. the daily poll job
+2. the Telegram digest job (send mode by default, preview mode with `dryRun`)
+
+### Vercel Setup
+
+- Add `CRON_SECRET` in your Vercel project environment variables.
+- Keep Telegram send env vars set in Vercel (`TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) for production sends.
+- Deploy with `vercel.json` containing the daily cron schedule for `/api/jobs/daily`.
+
+The included cron schedule runs once per day at `13:00 UTC` (`0 13 * * *`).
+
+Vercel Cron runs only on production deployments. Preview deployments do not execute cron jobs.
+
+Vercel does not automatically retry failed cron invocations, so use Vercel logs plus the idempotent digest behavior for manual retries if needed.
+
+### Manual Test (dry run)
+
+Start the app locally, set `CRON_SECRET`, and call the route with auth:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $CRON_SECRET" \
+  "http://localhost:3000/api/jobs/daily?dryRun=1"
+```
+
+`dryRun=1` still runs the poll job and DB writes, but the digest is preview-only (no Telegram send).
+
 ## Scheduler Example (local cron)
 
 Run poll first, then digest send:

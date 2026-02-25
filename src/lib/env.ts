@@ -6,6 +6,7 @@ const serverEnvSchema = z.object({
   BLIZZARD_CLIENT_SECRET: z.string().optional(),
   LOCALE_DEFAULT: z.string().default("en_US"),
   APP_TIMEZONE: z.string().default("UTC"),
+  CRON_SECRET: z.string().optional(),
   TELEGRAM_ENABLED: z.string().default("false"),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
@@ -29,6 +30,12 @@ export function requireBlizzardCredentials() {
     clientId: env.BLIZZARD_CLIENT_ID,
     clientSecret: env.BLIZZARD_CLIENT_SECRET
   };
+}
+
+export function getCronSecret(): string | undefined {
+  const env = getServerEnv();
+  const secret = env.CRON_SECRET?.trim();
+  return secret ? secret : undefined;
 }
 
 function isTruthyEnv(value: string): boolean {
