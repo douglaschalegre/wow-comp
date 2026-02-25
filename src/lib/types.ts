@@ -16,20 +16,24 @@ export interface TrackedCharactersConfigFile {
 }
 
 export interface ScoreWeights {
+  level: number;
+  itemLevel: number;
+  mythicPlusRating: number;
+  bestKey: number;
   quests: number;
   reputations: number;
-  itemLevel: number;
   encounters: number;
-  mythicPlus: number;
   achievementsStatistics: number;
 }
 
 export interface ScoreNormalizationCaps {
+  level: number;
   completedQuestCount: number;
   reputationProgressTotal: number;
   averageItemLevel: number;
   encounterKillScore: number;
-  mythicPlusComposite: number;
+  mythicPlusSeasonScore: number;
+  mythicPlusBestRunLevel: number;
   achievementPoints: number;
   statisticsCompositeValue: number;
 }
@@ -101,19 +105,23 @@ export interface ScoreBreakdown {
   totalScore: number;
   totalWeight: number;
   normalizedCategories: {
+    level: number;
+    itemLevel: number;
+    mythicPlusRating: number;
+    bestKey: number;
     quests: number;
     reputations: number;
-    itemLevel: number;
     encounters: number;
-    mythicPlus: number;
     achievementsStatistics: number;
   };
   weightedContributions: {
+    level: number;
+    itemLevel: number;
+    mythicPlusRating: number;
+    bestKey: number;
     quests: number;
     reputations: number;
-    itemLevel: number;
     encounters: number;
-    mythicPlus: number;
     achievementsStatistics: number;
   };
   warnings: string[];

@@ -42,19 +42,23 @@ export const scoreProfileConfigSchema = z.object({
   name: z.string().min(1),
   version: z.number().int().positive().default(1),
   weights: z.object({
+    level: z.number().nonnegative(),
+    itemLevel: z.number().nonnegative(),
+    mythicPlusRating: z.number().nonnegative(),
+    bestKey: z.number().nonnegative(),
     quests: z.number().nonnegative(),
     reputations: z.number().nonnegative(),
-    itemLevel: z.number().nonnegative(),
     encounters: z.number().nonnegative(),
-    mythicPlus: z.number().nonnegative(),
     achievementsStatistics: z.number().nonnegative()
   }),
   normalizationCaps: z.object({
+    level: z.number().positive(),
     completedQuestCount: z.number().positive(),
     reputationProgressTotal: z.number().positive(),
     averageItemLevel: z.number().positive(),
     encounterKillScore: z.number().positive(),
-    mythicPlusComposite: z.number().positive(),
+    mythicPlusSeasonScore: z.number().positive(),
+    mythicPlusBestRunLevel: z.number().positive(),
     achievementPoints: z.number().positive(),
     statisticsCompositeValue: z.number().positive()
   }),

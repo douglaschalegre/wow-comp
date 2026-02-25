@@ -108,11 +108,13 @@ function parseScoreWeights(value: unknown): ScoreWeights | null {
   const record = asRecord(value);
   if (!record) return null;
   return {
+    level: asNumber(record.level),
+    itemLevel: asNumber(record.itemLevel),
+    mythicPlusRating: asNumber(record.mythicPlusRating, asNumber(record.mythicPlus)),
+    bestKey: asNumber(record.bestKey),
     quests: asNumber(record.quests),
     reputations: asNumber(record.reputations),
-    itemLevel: asNumber(record.itemLevel),
     encounters: asNumber(record.encounters),
-    mythicPlus: asNumber(record.mythicPlus),
     achievementsStatistics: asNumber(record.achievementsStatistics)
   };
 }
@@ -121,11 +123,13 @@ function parseNormalizationCaps(value: unknown): ScoreNormalizationCaps | null {
   const record = asRecord(value);
   if (!record) return null;
   return {
+    level: asNumber(record.level, 90),
     completedQuestCount: asNumber(record.completedQuestCount),
     reputationProgressTotal: asNumber(record.reputationProgressTotal),
     averageItemLevel: asNumber(record.averageItemLevel),
     encounterKillScore: asNumber(record.encounterKillScore),
-    mythicPlusComposite: asNumber(record.mythicPlusComposite),
+    mythicPlusSeasonScore: asNumber(record.mythicPlusSeasonScore, asNumber(record.mythicPlusComposite, 4000)),
+    mythicPlusBestRunLevel: asNumber(record.mythicPlusBestRunLevel, 20),
     achievementPoints: asNumber(record.achievementPoints),
     statisticsCompositeValue: asNumber(record.statisticsCompositeValue)
   };

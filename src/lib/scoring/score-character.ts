@@ -23,14 +23,13 @@ export function scoreCharacter(
   const statsPct = normalizedPercent(metrics.statisticsCompositeValue, caps.statisticsCompositeValue);
 
   const normalizedCategories = {
+    level: normalizedPercent(metrics.level, caps.level),
+    itemLevel: normalizedPercent(metrics.averageItemLevel, caps.averageItemLevel),
+    mythicPlusRating: normalizedPercent(metrics.mythicPlusSeasonScore, caps.mythicPlusSeasonScore),
+    bestKey: normalizedPercent(metrics.mythicPlusBestRunLevel, caps.mythicPlusBestRunLevel),
     quests: normalizedPercent(metrics.completedQuestCount, caps.completedQuestCount),
     reputations: normalizedPercent(metrics.reputationProgressTotal, caps.reputationProgressTotal),
-    itemLevel: normalizedPercent(metrics.averageItemLevel, caps.averageItemLevel),
     encounters: normalizedPercent(metrics.encounterKillScore, caps.encounterKillScore),
-    mythicPlus: normalizedPercent(
-      metrics.mythicPlusSeasonScore || metrics.mythicPlusBestRunLevel * 200 + metrics.mythicPlusRunsCount * 20,
-      caps.mythicPlusComposite
-    ),
     achievementsStatistics: clamp((achievementsPct + statsPct) / 2, 0, 100)
   };
 
@@ -40,11 +39,13 @@ export function scoreCharacter(
   }
 
   const weightedContributions = {
+    level: (normalizedCategories.level / 100) * weights.level,
+    itemLevel: (normalizedCategories.itemLevel / 100) * weights.itemLevel,
+    mythicPlusRating: (normalizedCategories.mythicPlusRating / 100) * weights.mythicPlusRating,
+    bestKey: (normalizedCategories.bestKey / 100) * weights.bestKey,
     quests: (normalizedCategories.quests / 100) * weights.quests,
     reputations: (normalizedCategories.reputations / 100) * weights.reputations,
-    itemLevel: (normalizedCategories.itemLevel / 100) * weights.itemLevel,
     encounters: (normalizedCategories.encounters / 100) * weights.encounters,
-    mythicPlus: (normalizedCategories.mythicPlus / 100) * weights.mythicPlus,
     achievementsStatistics:
       (normalizedCategories.achievementsStatistics / 100) * weights.achievementsStatistics
   };
