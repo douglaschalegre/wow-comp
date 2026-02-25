@@ -48,8 +48,10 @@ export interface LeaderboardRowView {
 export interface LatestLeaderboardView {
   snapshotDate: Date | null;
   rows: LeaderboardRowView[];
+  lastCompletedPollAt: Date | null;
   lastJob: {
     status: string;
+    startedAt: Date;
     finishedAt: Date | null;
   } | null;
   scoreProfile: LeaderboardScoreProfileView | null;
@@ -140,6 +142,7 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
     return {
       snapshotDate: null,
       rows: [],
+      lastCompletedPollAt: null,
       lastJob: null,
       scoreProfile: null
     };
@@ -150,21 +153,35 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
     select: { snapshotDate: true }
   });
 
-  const lastJob = await prisma.jobRun.findFirst({
-    where: {
-      jobType: "POLL"
-    },
-    orderBy: { startedAt: "desc" },
-    select: {
-      status: true,
-      finishedAt: true
-    }
-  });
+  const [lastJob, lastCompletedPoll] = await prisma.$transaction([
+    prisma.jobRun.findFirst({
+      where: {
+        jobType: "POLL"
+      },
+      orderBy: { startedAt: "desc" },
+      select: {
+        status: true,
+        startedAt: true,
+        finishedAt: true
+      }
+    }),
+    prisma.jobRun.findFirst({
+      where: {
+        jobType: "POLL",
+        finishedAt: { not: null }
+      },
+      orderBy: { finishedAt: "desc" },
+      select: {
+        finishedAt: true
+      }
+    })
+  ]);
 
   if (!latestSnapshot) {
     return {
       snapshotDate: null,
       rows: [],
+      lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
       lastJob,
       scoreProfile: null
     };
@@ -186,6 +203,7 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
     return {
       snapshotDate: latestSnapshot.snapshotDate,
       rows: [],
+      lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
       lastJob,
       scoreProfile: null
     };
@@ -301,6 +319,7 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
         polledAt: score.snapshot.polledAt
       };
     }),
+    lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
     lastJob,
     scoreProfile
   };

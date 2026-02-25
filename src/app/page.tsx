@@ -8,6 +8,7 @@ type HomePageData = Awaited<ReturnType<typeof getLatestLeaderboardView>>;
 const EMPTY_HOME_PAGE_DATA: HomePageData = {
   snapshotDate: null,
   rows: [],
+  lastCompletedPollAt: null,
   lastJob: null,
   scoreProfile: null
 };
@@ -31,9 +32,26 @@ function formatSnapshotDate(value: Date | null): string {
 
 function jobStatusClass(status: string | null): string {
   if (!status) return "text-[color:var(--muted)]";
+  if (status === "RUNNING") return "text-zinc-200";
   if (status === "SUCCESS") return "text-white";
   if (status === "PARTIAL_FAILURE") return "text-zinc-200";
   return "text-white";
+}
+
+function formatLastPollLabel(data: HomePageData): string {
+  if (data.lastCompletedPollAt) {
+    return formatDate(data.lastCompletedPollAt);
+  }
+
+  if (data.lastJob?.status === "RUNNING") {
+    return `Running since ${formatDate(data.lastJob.startedAt)}`;
+  }
+
+  if (data.lastJob) {
+    return "No completed poll yet";
+  }
+
+  return "Not run";
 }
 
 export default async function HomePage(): Promise<React.JSX.Element> {
@@ -136,7 +154,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                   Last Poll (UTC)
                 </p>
                 <p className="mt-1 text-[0.92rem] leading-snug text-zinc-100">
-                  {data.lastJob?.finishedAt ? formatDate(data.lastJob.finishedAt) : "Not run"}
+                  {formatLastPollLabel(data)}
                 </p>
               </div>
 
