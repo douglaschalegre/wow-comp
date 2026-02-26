@@ -59,7 +59,7 @@ This repo supports a Vercel Cron-triggered Vercel Function at `GET /api/jobs/dai
 - Keep Telegram send env vars set in Vercel (`TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) for production sends.
 - Deploy with `vercel.json` containing the daily cron schedule for `/api/jobs/daily`.
 
-The included cron schedule runs once per day at `13:00 UTC` (`0 13 * * *`).
+The included cron schedule runs once per day at `15:00 UTC` (`0 15 * * *`), which is `12:00` in `UTC-03:00`.
 
 Vercel Cron runs only on production deployments. Preview deployments do not execute cron jobs.
 
