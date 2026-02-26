@@ -226,7 +226,6 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps): React.JSX.Ele
                 { label: "M+ Rating", centered: true },
                 { label: "Best Key", centered: true },
                 { label: "Score", centered: true },
-                { label: "Score Δ", centered: true },
                 { label: "Quests", centered: true },
                 { label: "Rep", centered: true },
                 { label: "Updated (UTC)", centered: false }
@@ -245,7 +244,7 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps): React.JSX.Ele
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={11}>
+                <td colSpan={10}>
                   <div className="m-4 border border-dashed border-[color:var(--line-strong)] bg-black p-5">
                     <h3 className="mb-1 text-[0.95rem] uppercase tracking-[0.08em] text-white [font-family:var(--font-display),serif]">
                       No Leaderboard Data Yet
@@ -349,19 +348,20 @@ export function LeaderboardTable({ rows }: LeaderboardTableProps): React.JSX.Ele
                       {formatBestKey(row.bestKeyLevel)}
                     </td>
                     <td className={`${TD_NUM_CLASS} font-semibold text-white`}>
-                      {row.totalScore.toFixed(2)}
-                    </td>
-
-                    <td
-                      className={`${TD_NUM_CLASS} ${toneClass(
-                        row.dailyDelta,
-                        deltaMissing,
-                        deltaNeutral,
-                        deltaPos,
-                        deltaNeg
-                      )}`}
-                    >
-                      {formatSigned(row.dailyDelta, 2)}
+                      <div className="inline-flex items-center gap-1.5">
+                        <span>{row.totalScore.toFixed(2)}</span>
+                        <span
+                          className={`text-[0.76rem] ${toneClass(
+                            row.dailyDelta,
+                            deltaMissing,
+                            deltaNeutral,
+                            deltaPos,
+                            deltaNeg
+                          )}`}
+                        >
+                          ({formatSigned(row.dailyDelta, 2)})
+                        </span>
+                      </div>
                     </td>
                     <td className={TD_NUM_CLASS}>
                       <div className="inline-flex items-center gap-1.5">

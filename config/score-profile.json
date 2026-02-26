@@ -12,14 +12,10 @@
     "achievementsStatistics": 0
   },
   "normalizationCaps": {
-    "level": 90,
-    "completedQuestCount": 1500,
-    "reputationProgressTotal": 250000,
-    "averageItemLevel": 700,
-    "encounterKillScore": 500,
+    "maxLevel": 90,
+    "maxItemLevel": 289,
     "mythicPlusSeasonScore": 4000,
     "mythicPlusBestRunLevel": 20,
-    "achievementPoints": 45000,
     "statisticsCompositeValue": 25000
   },
   "filters": {

@@ -125,15 +125,15 @@ function parseNormalizationCaps(value: unknown): ScoreNormalizationCaps | null {
   const record = asRecord(value);
   if (!record) return null;
   return {
-    level: asNumber(record.level, 90),
-    completedQuestCount: asNumber(record.completedQuestCount),
-    reputationProgressTotal: asNumber(record.reputationProgressTotal),
-    averageItemLevel: asNumber(record.averageItemLevel),
-    encounterKillScore: asNumber(record.encounterKillScore),
+    level: asNumber(record.level, asNumber(record.maxLevel, 90)),
+    completedQuestCount: asNumber(record.completedQuestCount, 1500),
+    reputationProgressTotal: asNumber(record.reputationProgressTotal, 250000),
+    averageItemLevel: asNumber(record.averageItemLevel, asNumber(record.maxItemLevel, 700)),
+    encounterKillScore: asNumber(record.encounterKillScore, 500),
     mythicPlusSeasonScore: asNumber(record.mythicPlusSeasonScore, asNumber(record.mythicPlusComposite, 4000)),
     mythicPlusBestRunLevel: asNumber(record.mythicPlusBestRunLevel, 20),
-    achievementPoints: asNumber(record.achievementPoints),
-    statisticsCompositeValue: asNumber(record.statisticsCompositeValue)
+    achievementPoints: asNumber(record.achievementPoints, 45000),
+    statisticsCompositeValue: asNumber(record.statisticsCompositeValue, 25000)
   };
 }
 

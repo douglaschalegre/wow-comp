@@ -42,25 +42,28 @@ export const scoreProfileConfigSchema = z.object({
   name: z.string().min(1),
   version: z.number().int().positive().default(1),
   weights: z.object({
-    level: z.number().nonnegative(),
-    itemLevel: z.number().nonnegative(),
-    mythicPlusRating: z.number().nonnegative(),
-    bestKey: z.number().nonnegative(),
-    quests: z.number().nonnegative(),
-    reputations: z.number().nonnegative(),
-    encounters: z.number().nonnegative(),
-    achievementsStatistics: z.number().nonnegative()
+    level: z.number().nonnegative().optional(),
+    itemLevel: z.number().nonnegative().optional(),
+    mythicPlusRating: z.number().nonnegative().optional(),
+    bestKey: z.number().nonnegative().optional(),
+    quests: z.number().nonnegative().optional(),
+    reputations: z.number().nonnegative().optional(),
+    encounters: z.number().nonnegative().optional(),
+    achievementsStatistics: z.number().nonnegative().optional()
   }),
   normalizationCaps: z.object({
-    level: z.number().positive(),
-    completedQuestCount: z.number().positive(),
-    reputationProgressTotal: z.number().positive(),
-    averageItemLevel: z.number().positive(),
-    encounterKillScore: z.number().positive(),
-    mythicPlusSeasonScore: z.number().positive(),
-    mythicPlusBestRunLevel: z.number().positive(),
-    achievementPoints: z.number().positive(),
-    statisticsCompositeValue: z.number().positive()
+    // Accept both canonical internal keys and compact config aliases.
+    level: z.number().positive().optional(),
+    maxLevel: z.number().positive().optional(),
+    completedQuestCount: z.number().positive().optional(),
+    reputationProgressTotal: z.number().positive().optional(),
+    averageItemLevel: z.number().positive().optional(),
+    maxItemLevel: z.number().positive().optional(),
+    encounterKillScore: z.number().positive().optional(),
+    mythicPlusSeasonScore: z.number().positive().optional(),
+    mythicPlusBestRunLevel: z.number().positive().optional(),
+    achievementPoints: z.number().positive().optional(),
+    statisticsCompositeValue: z.number().positive().optional()
   }),
   filters: z.object({
     questIds: z.array(z.number().int().nonnegative()).default([]),
