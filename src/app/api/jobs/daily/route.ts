@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { runDailyAutomation } from "@/jobs/daily-automation";
+import { runDailyInvocation } from "@/jobs/daily-invocation";
 import { getCronSecret } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -39,10 +39,6 @@ function isDryRunRequest(request: NextRequest): boolean {
   return normalized === "1" || normalized === "true";
 }
 
-function serializeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const cronSecret = getCronSecret();
   if (!cronSecret) {
@@ -66,40 +62,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const dryRun = isDryRunRequest(request);
+  const execution = await runDailyInvocation({ dryRun });
 
-  try {
-    const result = await runDailyAutomation({ dryRun });
-    const logPayload = {
-      event: "daily_cron_run",
-      ok: result.ok,
-      mode: result.mode,
-      snapshotDate: result.snapshotDate,
-      pollStatus: result.poll.status,
-      digestStatus: result.digest.status ?? null,
-      digestVariant: result.digest.variant ?? null,
-      digestError: result.digest.error ?? null
-    };
-
-    if (result.ok) {
-      console.log(logPayload);
-    } else {
-      console.error(logPayload);
-    }
-
-    return noStoreJson(result, result.ok ? 200 : 500);
-  } catch (error) {
-    const message = serializeError(error);
-    console.error({
-      event: "daily_cron_run_unhandled_error",
-      error: message
-    });
-
-    return noStoreJson(
-      {
-        ok: false,
-        error: message
-      },
-      500
-    );
+  if (execution.logLevel === "info") {
+    console.log(execution.logPayload);
+  } else {
+    console.error(execution.logPayload);
   }
+
+  return noStoreJson(execution.body, execution.statusCode);
 }

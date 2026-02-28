@@ -11,9 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:db-push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
-    "job:poll": "tsx scripts/run-poll.ts",
-    "job:rebuild-leaderboard": "tsx scripts/run-rebuild-leaderboard.ts",
-    "job:digest": "tsx scripts/run-digest.ts"
+    "job": "tsx scripts/run-job.ts",
+    "job:rebuild-leaderboard": "tsx scripts/run-rebuild-leaderboard.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
