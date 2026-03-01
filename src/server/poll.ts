@@ -1,19 +1,16 @@
 import { createHash } from "node:crypto";
 import { Faction, JobStatus, JobType, Prisma, Region } from "@prisma/client";
-import { fetchCharacterProgressBundle } from "@/lib/blizzard/wow-profile";
-import { BlizzardClient } from "@/lib/blizzard/client";
-import { loadScoreProfileConfig, loadTrackedCharactersConfig } from "@/lib/config/load";
-import { prisma } from "@/lib/db/prisma";
-import { scoreCharacter } from "@/lib/scoring/score-character";
-import { normalizeCharacterProgressBundle } from "@/lib/snapshots/normalize";
-import { buildMetricDelta } from "@/lib/snapshots/diff";
+import { BlizzardClient, fetchCharacterProgressBundle } from "@/server/blizzard";
+import { loadScoreProfileConfig, loadTrackedCharactersConfig } from "@/server/config";
+import { buildMetricDelta, normalizeCharacterProgressBundle, scoreCharacter } from "@/server/metrics";
+import { prisma } from "@/server/prisma";
 import type {
   NormalizedCharacterMetrics,
   PollCharacterResult,
   PollJobResult,
   ScoreProfileConfig,
   TrackedCharacterConfig
-} from "@/lib/types";
+} from "@/server/types";
 
 function startOfUtcDay(date = new Date()): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));

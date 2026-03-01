@@ -1,4 +1,4 @@
-import { runRebuildLeaderboardJob } from "../src/jobs/rebuild-leaderboard";
+import { runRebuildLeaderboardJob } from "../src/server/rebuild";
 
 async function main(): Promise<void> {
   const result = await runRebuildLeaderboardJob();

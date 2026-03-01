@@ -5,7 +5,6 @@ const serverEnvSchema = z.object({
   BLIZZARD_CLIENT_ID: z.string().optional(),
   BLIZZARD_CLIENT_SECRET: z.string().optional(),
   LOCALE_DEFAULT: z.string().default("en_US"),
-  APP_TIMEZONE: z.string().default("UTC"),
   CRON_SECRET: z.string().optional(),
   TELEGRAM_ENABLED: z.string().default("false"),
   TELEGRAM_BOT_TOKEN: z.string().optional(),

@@ -1,6 +1,6 @@
-import type { PollJobResult } from "@/lib/types";
-import { runDigestJob, type DigestRunResult } from "./digest";
-import { runPollJob } from "./poll";
+import { runDigestJob, type DigestRunResult } from "@/server/digest";
+import { runPollJob } from "@/server/poll";
+import type { PollJobResult } from "@/server/types";
 
 type DailyAutomationMode = "send" | "dry_run";
 type DailyPollStatus = "SUCCESS" | "PARTIAL_FAILURE" | "FAILED" | "ERROR";
@@ -31,6 +31,21 @@ export interface DailyAutomationRunResult {
     warningCount?: number;
     error?: string;
   };
+}
+
+export interface DailyInvocationErrorBody {
+  ok: false;
+  error: string;
+}
+
+export type DailyInvocationBody = DailyAutomationRunResult | DailyInvocationErrorBody;
+export type DailyInvocationLogLevel = "info" | "error";
+
+export interface DailyInvocationResult {
+  statusCode: 200 | 500;
+  body: DailyInvocationBody;
+  logPayload: Record<string, unknown>;
+  logLevel: DailyInvocationLogLevel;
 }
 
 function startOfUtcDay(date = new Date()): Date {
@@ -114,4 +129,43 @@ export async function runDailyAutomation(
       error: digestError
     }
   };
+}
+
+export async function runDailyInvocation(
+  options: DailyAutomationRunOptions = {}
+): Promise<DailyInvocationResult> {
+  try {
+    const result = await runDailyAutomation(options);
+    const logPayload = {
+      event: "daily_cron_run",
+      ok: result.ok,
+      mode: result.mode,
+      snapshotDate: result.snapshotDate,
+      pollStatus: result.poll.status,
+      digestStatus: result.digest.status ?? null,
+      digestVariant: result.digest.variant ?? null,
+      digestError: result.digest.error ?? null
+    };
+
+    return {
+      statusCode: result.ok ? 200 : 500,
+      body: result,
+      logPayload,
+      logLevel: result.ok ? "info" : "error"
+    };
+  } catch (error) {
+    const message = serializeErrorMessage(error);
+    return {
+      statusCode: 500,
+      body: {
+        ok: false,
+        error: message
+      },
+      logPayload: {
+        event: "daily_cron_run_unhandled_error",
+        error: message
+      },
+      logLevel: "error"
+    };
+  }
 }

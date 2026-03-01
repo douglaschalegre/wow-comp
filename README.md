@@ -1,11 +1,17 @@
 # WoW Progress Competition (MVP)
 
-Next.js app for tracking World of Warcraft character progress via the Blizzard API and ranking players on a composite score. This phase intentionally excludes Admin UI and Telegram notifications.
+Next.js app for tracking World of Warcraft character progress via the Blizzard API and ranking players on a composite score.
+
+This repo is organized in two tracks for teaching:
+
+- Beginner track: `src/app/*` (UI and route adapter only)
+- Advanced track: `src/server/*` (Prisma, Blizzard integration, jobs, Telegram digest)
 
 ## Current MVP Includes
 
 - Public leaderboard page (`/`)
 - Unified daily job (poll + digest) (`npm run job`)
+- Optional Telegram send mode with idempotent delivery tracking
 - Config-driven tracked characters (`config/tracked-characters.json`)
 - Config-driven scoring profile (`config/score-profile.json`)
 - Prisma schema for snapshots, deltas, scores, job runs, and Telegram delivery idempotency
@@ -13,7 +19,7 @@ Next.js app for tracking World of Warcraft character progress via the Blizzard A
 ## Deferred Features (Documented, Not Implemented Yet)
 
 - Admin UI and admin APIs
-- Admin-managed Telegram notification settings/UI (the digest backend exists; admin integration is deferred)
+- Admin-managed Telegram notification settings/UI (Telegram backend exists; admin integration is deferred)
 
 See `/Users/douglas/code/pers/wow-comp/docs/deferred-admin-telegram-plan.md`.
 
@@ -30,12 +36,34 @@ See `/Users/douglas/code/pers/wow-comp/docs/deferred-admin-telegram-plan.md`.
 8. Send mode (poll + Telegram digest, with Telegram env vars configured): `npm run job`
 9. `npm run dev`
 
+## Architecture
+
+- `src/app/*`: student-facing web layer
+  - `src/app/page.tsx`: leaderboard page and table rendering
+  - `src/app/api/jobs/daily/route.ts`: cron/webhook adapter with auth
+- `src/server/*`: advanced backend layer
+  - `poll.ts`: Blizzard fetch + normalization + scoring + DB writes
+  - `digest.ts`: digest query + formatting + Telegram send/idempotency
+  - `daily.ts`: orchestration for poll + digest and invocation result contract
+  - `leaderboard.ts`: page query model for latest standings
+  - `config.ts`, `blizzard.ts`, `metrics.ts`, `prisma.ts`, `env.ts`, `types.ts`: shared server internals
+  - `rebuild.ts`: advanced leaderboard rebuild job
+
 ## Notes
 
 - The polling job uses Blizzard OAuth client credentials and public character profile endpoints.
 - The scoring model is intentionally configurable so Midnight-specific filters can be refined later without changing code paths.
 - The daily job is CLI-driven in v1 (`npm run job`) and uses env vars for Telegram configuration plus DB-backed delivery idempotency.
 - Admin UI/API implementation details are preserved in the deferred plan doc for later phases.
+
+## Advanced Objectives
+
+- Rebuild leaderboard snapshots manually:
+  - `npm run job:rebuild-leaderboard`
+- Production cron webhook:
+  - `GET /api/jobs/daily` with `Authorization: Bearer $CRON_SECRET`
+- Telegram send mode:
+  - set `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
 
 ## Telegram Digest Env Vars (v1 backend)
 
