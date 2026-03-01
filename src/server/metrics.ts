@@ -1,9 +1,22 @@
 import type {
+  MetricDelta,
   NormalizedCharacterMetrics,
   RawCharacterProgressBundle,
+  ScoreBreakdown,
   ScoreProfileConfig,
   TrackedCharacterConfig
-} from "@/lib/types";
+} from "@/server/types";
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function normalizedPercent(value: number, cap: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(cap) || cap <= 0) {
+    return 0;
+  }
+  return clamp((value / cap) * 100, 0, 100);
+}
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === "object" ? (value as Record<string, unknown>) : undefined;
@@ -251,6 +264,11 @@ function extractCharacterLevel(profileSummary: unknown): number {
   return num(p.level) ?? num(p.character_level) ?? num(p.effective_level) ?? 0;
 }
 
+function round(value: number, precision = 2): number {
+  const factor = 10 ** precision;
+  return Math.round(value * factor) / factor;
+}
+
 export function normalizeCharacterProgressBundle(
   bundle: RawCharacterProgressBundle,
   character: TrackedCharacterConfig,
@@ -285,6 +303,109 @@ export function normalizeCharacterProgressBundle(
     mythicPlusRunsCount: mythicPlus.runsCount,
     mythicPlusBestRunLevel: mythicPlus.bestRunLevel,
     mythicPlusSeasonScore: mythicPlus.seasonScore,
+    warnings
+  };
+}
+
+export function buildMetricDelta(
+  previous: NormalizedCharacterMetrics | null,
+  current: NormalizedCharacterMetrics
+): MetricDelta {
+  const base = previous ?? {
+    ...current,
+    level: 0,
+    averageItemLevel: 0,
+    achievementPoints: 0,
+    statisticsCompositeValue: 0,
+    completedQuestCount: 0,
+    reputationProgressTotal: 0,
+    encounterKillScore: 0,
+    mythicPlusRunsCount: 0,
+    mythicPlusBestRunLevel: 0,
+    mythicPlusSeasonScore: 0
+  };
+
+  const deltas = {
+    level: round(current.level - base.level),
+    averageItemLevel: round(current.averageItemLevel - base.averageItemLevel),
+    achievementPoints: round(current.achievementPoints - base.achievementPoints),
+    statisticsCompositeValue: round(current.statisticsCompositeValue - base.statisticsCompositeValue),
+    completedQuestCount: round(current.completedQuestCount - base.completedQuestCount),
+    reputationProgressTotal: round(current.reputationProgressTotal - base.reputationProgressTotal),
+    encounterKillScore: round(current.encounterKillScore - base.encounterKillScore),
+    mythicPlusRunsCount: round(current.mythicPlusRunsCount - base.mythicPlusRunsCount),
+    mythicPlusBestRunLevel: round(current.mythicPlusBestRunLevel - base.mythicPlusBestRunLevel),
+    mythicPlusSeasonScore: round(current.mythicPlusSeasonScore - base.mythicPlusSeasonScore)
+  };
+
+  const milestones: string[] = [];
+  if (deltas.level > 0) milestones.push(`Level +${deltas.level}`);
+  if (deltas.averageItemLevel >= 5) milestones.push(`Item level +${deltas.averageItemLevel.toFixed(1)}`);
+  if (deltas.completedQuestCount >= 10) milestones.push(`Completed quests +${deltas.completedQuestCount}`);
+  if (deltas.reputationProgressTotal >= 1000)
+    milestones.push(`Reputation progress +${Math.round(deltas.reputationProgressTotal)}`);
+  if (deltas.encounterKillScore >= 1) milestones.push(`Encounter progress +${deltas.encounterKillScore}`);
+  if (deltas.mythicPlusBestRunLevel >= 1)
+    milestones.push(`Mythic+ best key +${deltas.mythicPlusBestRunLevel}`);
+  if (deltas.mythicPlusSeasonScore >= 50)
+    milestones.push(`Mythic+ rating +${Math.round(deltas.mythicPlusSeasonScore)}`);
+  if (deltas.achievementPoints >= 5) milestones.push(`Achievement points +${deltas.achievementPoints}`);
+
+  return {
+    fromFetchedAt: previous?.fetchedAt,
+    toFetchedAt: current.fetchedAt,
+    deltas,
+    milestones
+  };
+}
+
+export function scoreCharacter(
+  metrics: NormalizedCharacterMetrics,
+  scoreProfile: ScoreProfileConfig
+): ScoreBreakdown {
+  const warnings = [...metrics.warnings];
+  const caps = scoreProfile.normalizationCaps;
+  const weights = scoreProfile.weights;
+
+  const achievementsPct = normalizedPercent(metrics.achievementPoints, caps.achievementPoints);
+  const statsPct = normalizedPercent(metrics.statisticsCompositeValue, caps.statisticsCompositeValue);
+
+  const normalizedCategories = {
+    level: normalizedPercent(metrics.level, caps.level),
+    itemLevel: normalizedPercent(metrics.averageItemLevel, caps.averageItemLevel),
+    mythicPlusRating: normalizedPercent(metrics.mythicPlusSeasonScore, caps.mythicPlusSeasonScore),
+    bestKey: normalizedPercent(metrics.mythicPlusBestRunLevel, caps.mythicPlusBestRunLevel),
+    quests: normalizedPercent(metrics.completedQuestCount, caps.completedQuestCount),
+    reputations: normalizedPercent(metrics.reputationProgressTotal, caps.reputationProgressTotal),
+    encounters: normalizedPercent(metrics.encounterKillScore, caps.encounterKillScore),
+    achievementsStatistics: clamp((achievementsPct + statsPct) / 2, 0, 100)
+  };
+
+  const totalWeight = Object.values(weights).reduce((sum, value) => sum + value, 0);
+  if (totalWeight <= 0) {
+    warnings.push("Score profile total weight is zero. Returning zero score.");
+  }
+
+  const weightedContributions = {
+    level: (normalizedCategories.level / 100) * weights.level,
+    itemLevel: (normalizedCategories.itemLevel / 100) * weights.itemLevel,
+    mythicPlusRating: (normalizedCategories.mythicPlusRating / 100) * weights.mythicPlusRating,
+    bestKey: (normalizedCategories.bestKey / 100) * weights.bestKey,
+    quests: (normalizedCategories.quests / 100) * weights.quests,
+    reputations: (normalizedCategories.reputations / 100) * weights.reputations,
+    encounters: (normalizedCategories.encounters / 100) * weights.encounters,
+    achievementsStatistics:
+      (normalizedCategories.achievementsStatistics / 100) * weights.achievementsStatistics
+  };
+
+  const weightedTotal = Object.values(weightedContributions).reduce((sum, value) => sum + value, 0);
+  const totalScore = totalWeight > 0 ? Number(((weightedTotal / totalWeight) * 100).toFixed(2)) : 0;
+
+  return {
+    totalScore,
+    totalWeight,
+    normalizedCategories,
+    weightedContributions,
     warnings
   };
 }

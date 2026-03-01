@@ -1,5 +1,5 @@
-import type { FactionCode, ScoreNormalizationCaps, ScoreWeights } from "@/lib/types";
-import { prisma } from "@/lib/db/prisma";
+import type { FactionCode } from "@/server/types";
+import { prisma } from "@/server/prisma";
 
 type RankChange = number | "NEW" | null;
 
@@ -14,13 +14,6 @@ export interface LeaderboardRowMetricsView {
   mythicPlusSeasonScore: number;
   achievementPoints: number;
   statisticsCompositeValue: number;
-}
-
-export interface LeaderboardScoreProfileView {
-  name: string;
-  version: number;
-  weights: ScoreWeights;
-  normalizationCaps: ScoreNormalizationCaps;
 }
 
 export interface LeaderboardRowView {
@@ -54,7 +47,6 @@ export interface LatestLeaderboardView {
     startedAt: Date;
     finishedAt: Date | null;
   } | null;
-  scoreProfile: LeaderboardScoreProfileView | null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -106,45 +98,13 @@ function parseDeltaJson(value: unknown): { questDelta: number | null; reputation
   };
 }
 
-function parseScoreWeights(value: unknown): ScoreWeights | null {
-  const record = asRecord(value);
-  if (!record) return null;
-  return {
-    level: asNumber(record.level),
-    itemLevel: asNumber(record.itemLevel),
-    mythicPlusRating: asNumber(record.mythicPlusRating, asNumber(record.mythicPlus)),
-    bestKey: asNumber(record.bestKey),
-    quests: asNumber(record.quests),
-    reputations: asNumber(record.reputations),
-    encounters: asNumber(record.encounters),
-    achievementsStatistics: asNumber(record.achievementsStatistics)
-  };
-}
-
-function parseNormalizationCaps(value: unknown): ScoreNormalizationCaps | null {
-  const record = asRecord(value);
-  if (!record) return null;
-  return {
-    level: asNumber(record.level, asNumber(record.maxLevel, 90)),
-    completedQuestCount: asNumber(record.completedQuestCount, 1500),
-    reputationProgressTotal: asNumber(record.reputationProgressTotal, 250000),
-    averageItemLevel: asNumber(record.averageItemLevel, asNumber(record.maxItemLevel, 700)),
-    encounterKillScore: asNumber(record.encounterKillScore, 500),
-    mythicPlusSeasonScore: asNumber(record.mythicPlusSeasonScore, asNumber(record.mythicPlusComposite, 4000)),
-    mythicPlusBestRunLevel: asNumber(record.mythicPlusBestRunLevel, 20),
-    achievementPoints: asNumber(record.achievementPoints, 45000),
-    statisticsCompositeValue: asNumber(record.statisticsCompositeValue, 25000)
-  };
-}
-
 export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView> {
   if (!process.env.DATABASE_URL) {
     return {
       snapshotDate: null,
       rows: [],
       lastCompletedPollAt: null,
-      lastJob: null,
-      scoreProfile: null
+      lastJob: null
     };
   }
 
@@ -182,8 +142,7 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
       snapshotDate: null,
       rows: [],
       lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
-      lastJob,
-      scoreProfile: null
+      lastJob
     };
   }
 
@@ -191,11 +150,7 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
     where: { isActive: true },
     orderBy: { updatedAt: "desc" },
     select: {
-      id: true,
-      name: true,
-      version: true,
-      weightsJson: true,
-      normalizationCapsJson: true
+      id: true
     }
   });
 
@@ -204,22 +159,9 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
       snapshotDate: latestSnapshot.snapshotDate,
       rows: [],
       lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
-      lastJob,
-      scoreProfile: null
+      lastJob
     };
   }
-
-  const parsedWeights = parseScoreWeights(activeProfile.weightsJson);
-  const parsedCaps = parseNormalizationCaps(activeProfile.normalizationCapsJson);
-  const scoreProfile: LeaderboardScoreProfileView | null =
-    parsedWeights && parsedCaps
-      ? {
-          name: activeProfile.name,
-          version: activeProfile.version,
-          weights: parsedWeights,
-          normalizationCaps: parsedCaps
-        }
-      : null;
 
   const scores = await prisma.leaderboardScore.findMany({
     where: {
@@ -320,7 +262,6 @@ export async function getLatestLeaderboardView(): Promise<LatestLeaderboardView>
       };
     }),
     lastCompletedPollAt: lastCompletedPoll?.finishedAt ?? null,
-    lastJob,
-    scoreProfile
+    lastJob
   };
 }

@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { JobStatus, JobType, Prisma } from "@prisma/client";
-import { loadScoreProfileConfig } from "@/lib/config/load";
-import { prisma } from "@/lib/db/prisma";
-import { scoreCharacter } from "@/lib/scoring/score-character";
-import type { NormalizedCharacterMetrics, ScoreProfileConfig } from "@/lib/types";
+import { loadScoreProfileConfig } from "@/server/config";
+import { scoreCharacter } from "@/server/metrics";
+import { prisma } from "@/server/prisma";
+import type { NormalizedCharacterMetrics, ScoreProfileConfig } from "@/server/types";
 
 export interface RebuildLeaderboardJobResult {
   rebuilt: number;

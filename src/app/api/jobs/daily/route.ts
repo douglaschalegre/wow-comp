@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { runDailyInvocation } from "@/jobs/daily-invocation";
-import { getCronSecret } from "@/lib/env";
+import { runDailyInvocation } from "@/server/daily";
+import { getCronSecret } from "@/server/env";
 
 export const runtime = "nodejs";
 

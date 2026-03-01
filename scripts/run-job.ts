@@ -1,4 +1,4 @@
-import { runDailyInvocation } from "../src/jobs/daily-invocation";
+import { runDailyInvocation } from "../src/server/daily";
 
 interface CliOptions {
   dryRun: boolean;
