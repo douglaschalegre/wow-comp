@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoW Progress Board - Simple HTML Version</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">Student Starter</p>
+        <h1>WoW Progress Competition</h1>
+        <p>
+          A simple leaderboard built with plain HTML, CSS, and JavaScript.
+        </p>
+      </header>
+
+      <section class="controls" aria-label="Leaderboard controls">
+        <label>
+          Faction
+          <select id="factionFilter">
+            <option value="ALL">All</option>
+            <option value="HORDE">Horde</option>
+            <option value="ALLIANCE">Alliance</option>
+          </select>
+        </label>
+
+        <label>
+          Sort by
+          <select id="sortBy">
+            <option value="score">Highest score</option>
+            <option value="itemLevel">Highest item level</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Character</th>
+              <th>Faction</th>
+              <th>Region</th>
+              <th>Item Level</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
