@@ -1,8 +1,10 @@
 # dependencies
 /node_modules
+**/node_modules
 
 # next.js
 /.next
+**/.next
 /out
 
 # local env
@@ -22,6 +24,7 @@ pnpm-debug.log*
 # build / scripts
 /coverage
 /dist
+**/dist
 *.tsbuildinfo
 
 # macOS
