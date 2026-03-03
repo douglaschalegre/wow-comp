@@ -21,7 +21,7 @@ This repo is organized in two tracks for teaching:
 - Admin UI and admin APIs
 - Admin-managed Telegram notification settings/UI (Telegram backend exists; admin integration is deferred)
 
-See `/Users/douglas/code/pers/wow-comp/docs/deferred-admin-telegram-plan.md`.
+See `docs/deferred-admin-telegram-plan.md`.
 
 ## Local Setup
 
@@ -108,7 +108,7 @@ curl -sS \
 Run the unified daily job:
 
 ```cron
-0 13 * * * cd /Users/douglas/code/pers/wow-comp && npm run job
+0 13 * * * cd /path/to/your/repo/next && npm run job
 ```
 
 The digest is idempotent by Telegram chat + snapshot UTC date, so retries will skip duplicate sends after a successful delivery.
