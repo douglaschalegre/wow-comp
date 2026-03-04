@@ -1,99 +1,141 @@
 # WoW Progress Competition (MVP)
 
-Next.js app for tracking World of Warcraft character progress via the Blizzard API and ranking players on a composite score.
+Aplicacao Next.js para acompanhar o progresso de personagens de World of Warcraft pela API da Blizzard e ranquear jogadores com base em uma pontuacao composta.
 
-This repo is organized in two tracks for teaching:
+Este repositorio esta organizado em duas trilhas para ensino:
 
-- Beginner track: `src/app/*` (UI and route adapter only)
-- Advanced track: `src/server/*` (Prisma, Blizzard integration, jobs, Telegram digest)
+- Trilha iniciante: `src/app/*` (somente UI e adaptador de rota)
+- Trilha avancada: `src/server/*` (Prisma, integracao com Blizzard, jobs, digest no Telegram)
 
-## Current MVP Includes
+## O que o MVP atual inclui
 
-- Public leaderboard page (`/`)
-- Unified daily job (poll + digest) (`npm run job`)
-- Optional Telegram send mode with idempotent delivery tracking
-- Config-driven tracked characters (`config/tracked-characters.json`)
-- Config-driven scoring profile (`config/score-profile.json`)
-- Prisma schema for snapshots, deltas, scores, job runs, and Telegram delivery idempotency
+- Pagina publica de leaderboard (`/`)
+- Job diario unificado (poll + digest) (`npm run job`)
+- Modo opcional de envio para Telegram com controle idempotente de entrega
+- Personagens monitorados por configuracao (`config/tracked-characters.json`)
+- Perfil de pontuacao por configuracao (`config/score-profile.json`)
+- Schema Prisma para snapshots, deltas, scores, execucoes de job e idempotencia de entrega no Telegram
 
-## Deferred Features (Documented, Not Implemented Yet)
+## Funcionalidades adiadas (documentadas, ainda nao implementadas)
 
-- Admin UI and admin APIs
-- Admin-managed Telegram notification settings/UI (Telegram backend exists; admin integration is deferred)
+- UI de admin e APIs de admin
+- Configuracao/notificacoes de Telegram gerenciadas por admin (o backend Telegram existe; a integracao de admin foi adiada)
 
-See `docs/deferred-admin-telegram-plan.md`.
+Veja `docs/deferred-admin-telegram-plan.md`.
 
-## Local Setup
+## Setup local
 
 1. `npm install`
 2. `cp .env.example .env`
-3. Fill in Blizzard credentials and database URL in `.env`
-   - Optional for Telegram send mode: set `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, and `TELEGRAM_CHAT_ID`
+3. Preencha credenciais da Blizzard e URL do banco no `.env`
+   - Opcional para modo de envio Telegram: defina `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`
 4. `npm run prisma:generate`
-5. `npm run prisma:db-push` (or `npm run prisma:migrate`)
-6. Update `config/tracked-characters.json` with real public characters and set `active: true`
-7. Dry run (poll + preview digest): `npm run job -- --dry-run`
-8. Send mode (poll + Telegram digest, with Telegram env vars configured): `npm run job`
+5. `npm run prisma:db-push` (ou `npm run prisma:migrate`)
+6. Atualize `config/tracked-characters.json` com personagens publicos reais e `active: true`
+7. Dry run (poll + preview do digest): `npm run job -- --dry-run`
+8. Modo envio (poll + digest Telegram, com variaveis Telegram configuradas): `npm run job`
 9. `npm run dev`
 
-## Architecture
+## Arquitetura
 
-- `src/app/*`: student-facing web layer
-  - `src/app/page.tsx`: leaderboard page and table rendering
-  - `src/app/api/jobs/daily/route.ts`: cron/webhook adapter with auth
-- `src/server/*`: advanced backend layer
-  - `poll.ts`: Blizzard fetch + normalization + scoring + DB writes
-  - `digest.ts`: digest query + formatting + Telegram send/idempotency
-  - `daily.ts`: orchestration for poll + digest and invocation result contract
-  - `leaderboard.ts`: page query model for latest standings
-  - `config.ts`, `blizzard.ts`, `metrics.ts`, `prisma.ts`, `env.ts`, `types.ts`: shared server internals
-  - `rebuild.ts`: advanced leaderboard rebuild job
+- `src/app/*`: camada web voltada aos alunos
+  - `src/app/page.tsx`: pagina da leaderboard e renderizacao da tabela
+  - `src/app/api/jobs/daily/route.ts`: adaptador de cron/webhook com auth
+- `src/server/*`: camada avancada de backend
+  - `poll.ts`: fetch Blizzard + normalizacao + pontuacao + escrita no banco
+  - `digest.ts`: consulta do digest + formatacao + envio Telegram/idempotencia
+  - `daily.ts`: orquestracao de poll + digest e contrato de resultado da execucao
+  - `leaderboard.ts`: modelo de consulta da classificacao mais recente
+  - `config.ts`, `blizzard.ts`, `metrics.ts`, `prisma.ts`, `env.ts`, `types.ts`: internals compartilhados do servidor
+  - `rebuild.ts`: job avancado de rebuild da leaderboard
 
-## Notes
+## Observacoes
 
-- The polling job uses Blizzard OAuth client credentials and public character profile endpoints.
-- The scoring model is intentionally configurable so Midnight-specific filters can be refined later without changing code paths.
-- The daily job is CLI-driven in v1 (`npm run job`) and uses env vars for Telegram configuration plus DB-backed delivery idempotency.
-- Admin UI/API implementation details are preserved in the deferred plan doc for later phases.
+- O job de polling usa OAuth client credentials da Blizzard e endpoints publicos de perfil de personagem.
+- O modelo de pontuacao e propositalmente configuravel para ajustar filtros especificos de Midnight sem alterar os caminhos de codigo.
+- O job diario na v1 e via CLI (`npm run job`) e usa variaveis de ambiente para configuracao do Telegram, com idempotencia de entrega baseada no banco.
+- Detalhes de implementacao de UI/API de admin ficam preservados no documento de plano adiado para fases futuras.
 
-## Advanced Objectives
+## Objetivos avancados
 
-- Rebuild leaderboard snapshots manually:
+- Rebuild manual dos snapshots da leaderboard:
   - `npm run job:rebuild-leaderboard`
-- Production cron webhook:
-  - `GET /api/jobs/daily` with `Authorization: Bearer $CRON_SECRET`
-- Telegram send mode:
-  - set `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- Webhook cron de producao:
+  - `GET /api/jobs/daily` com `Authorization: Bearer $CRON_SECRET`
+- Modo de envio Telegram:
+  - defina `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- Webhook de comando Telegram (`/update`):
+  - `POST /api/telegram/webhook` com header `X-Telegram-Bot-Api-Secret-Token: $TELEGRAM_WEBHOOK_SECRET`
 
-## Telegram Digest Env Vars (v1 backend)
+## Variaveis de ambiente do Telegram Digest (backend v1)
 
-- `TELEGRAM_ENABLED` (`true` to allow send mode; dry-run mode ignores this)
-- `TELEGRAM_BOT_TOKEN` (required for send mode)
-- `TELEGRAM_CHAT_ID` (required for send mode)
-- `TELEGRAM_LEAGUE_NAME` (optional, defaults to `WoW Midnight League`)
+- `TELEGRAM_ENABLED` (`true` para permitir modo envio; o dry-run ignora isso)
+- `TELEGRAM_BOT_TOKEN` (obrigatorio para modo envio)
+- `TELEGRAM_CHAT_ID` (obrigatorio para modo envio)
+- `TELEGRAM_LEAGUE_NAME` (opcional, padrao `WoW Midnight League`)
+- `TELEGRAM_WEBHOOK_SECRET` (obrigatorio para processar comandos no webhook Telegram)
 
-## Vercel Cron (Daily Poll + Telegram Digest)
+## Comando `/update` no Telegram
 
-This repo supports a Vercel Cron-triggered Vercel Function at `GET /api/jobs/daily` that runs:
+Esta versao inclui o endpoint `POST /api/telegram/webhook` para receber updates do bot Telegram.
 
-1. the daily poll job
-2. the Telegram digest job (send mode by default, preview mode with `dryRun`)
+Quando uma mensagem de comando `/update` (ou `/update@seu_bot`) chega no chat configurado em `TELEGRAM_CHAT_ID`, o backend executa:
 
-### Vercel Setup
+1. `runPollJob()` para atualizar snapshots/scores
+2. `runDigestJob({ mode: "preview", snapshotDate })` para montar o texto atualizado
+3. envio da mensagem formatada para o mesmo chat via bot
 
-- Add `CRON_SECRET` in your Vercel project environment variables.
-- Keep Telegram send env vars set in Vercel (`TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) for production sends.
-- Deploy with `vercel.json` containing the daily cron schedule for `/api/jobs/daily`.
+Requisitos:
 
-The included cron schedule runs once per day at `15:00 UTC` (`0 15 * * *`), which is `12:00` in `UTC-03:00`.
+- `TELEGRAM_ENABLED=true`
+- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` configurados
+- webhook do Telegram registrado com o mesmo secret token
 
-Vercel Cron runs only on production deployments. Preview deployments do not execute cron jobs.
+Exemplo de registro do webhook (troque placeholders):
 
-Vercel does not automatically retry failed cron invocations, so use Vercel logs plus the idempotent digest behavior for manual retries if needed.
+```bash
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-domain.com/api/telegram/webhook",
+    "secret_token": "'$TELEGRAM_WEBHOOK_SECRET'"
+  }'
+```
 
-### Manual Test (dry run)
+Opcional (recomendado): registre o comando para autocomplete no cliente Telegram:
 
-Start the app locally, set `CRON_SECRET`, and call the route with auth:
+```bash
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setMyCommands" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "commands": [
+      { "command": "update", "description": "Atualiza dados e envia digest" }
+    ]
+  }'
+```
+
+## Vercel Cron (poll diario + Telegram Digest)
+
+Este repositorio suporta uma Vercel Function acionada por Vercel Cron em `GET /api/jobs/daily`, que executa:
+
+1. o job diario de poll
+2. o job de digest Telegram (modo envio por padrao, modo preview com `dryRun`)
+
+### Setup no Vercel
+
+- Adicione `CRON_SECRET` nas variaveis de ambiente do projeto no Vercel.
+- Mantenha variaveis de envio Telegram configuradas no Vercel (`TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) para envios em producao.
+- Faça deploy com `vercel.json` contendo o agendamento diario de cron para `/api/jobs/daily`.
+
+O agendamento incluido executa uma vez por dia as `15:00 UTC` (`0 15 * * *`), que corresponde a `12:00` em `UTC-03:00`.
+
+Vercel Cron roda apenas em deploys de producao. Deploys de preview nao executam jobs de cron.
+
+O Vercel nao faz retry automatico para invocacoes de cron com falha, entao use logs do Vercel junto do comportamento idempotente do digest para retries manuais quando necessario.
+
+### Teste manual (dry run)
+
+Inicie o app localmente, defina `CRON_SECRET` e chame a rota com auth:
 
 ```bash
 curl -sS \
@@ -101,14 +143,14 @@ curl -sS \
   "http://localhost:3000/api/jobs/daily?dryRun=1"
 ```
 
-`dryRun=1` still runs the poll job and DB writes, but the digest is preview-only (no Telegram send).
+`dryRun=1` ainda executa o job de poll e escreve no banco, mas o digest fica apenas em preview (sem envio para Telegram).
 
-## Scheduler Example (local cron)
+## Exemplo de agendador (cron local)
 
-Run the unified daily job:
+Execute o job diario unificado:
 
 ```cron
 0 13 * * * cd /path/to/your/repo/next && npm run job
 ```
 
-The digest is idempotent by Telegram chat + snapshot UTC date, so retries will skip duplicate sends after a successful delivery.
+O digest e idempotente por chat do Telegram + data UTC do snapshot, entao retries vao pular envios duplicados apos uma entrega bem-sucedida.

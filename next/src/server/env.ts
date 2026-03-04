@@ -9,7 +9,8 @@ const serverEnvSchema = z.object({
   TELEGRAM_ENABLED: z.string().default("false"),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
-  TELEGRAM_LEAGUE_NAME: z.string().default("WoW Midnight League")
+  TELEGRAM_LEAGUE_NAME: z.string().default("WoW Midnight League"),
+  TELEGRAM_WEBHOOK_SECRET: z.string().optional()
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -60,6 +61,12 @@ export interface TelegramDigestSendConfig {
   leagueName: string;
 }
 
+export interface TelegramWebhookConfig {
+  botToken: string;
+  chatId: string;
+  webhookSecret: string;
+}
+
 export function getTelegramDigestConfig(): TelegramDigestConfig {
   const env = getServerEnv();
 
@@ -90,5 +97,33 @@ export function requireTelegramDigestSendConfig(): TelegramDigestSendConfig {
     botToken: config.botToken,
     chatId: config.chatId,
     leagueName: config.leagueName
+  };
+}
+
+export function requireTelegramWebhookConfig(): TelegramWebhookConfig {
+  const config = getTelegramDigestConfig();
+  const env = getServerEnv();
+  const webhookSecret = env.TELEGRAM_WEBHOOK_SECRET?.trim();
+
+  if (!config.enabled) {
+    throw new Error("Telegram webhook is disabled. Set TELEGRAM_ENABLED=true to process Telegram commands.");
+  }
+
+  if (!config.botToken || !config.chatId) {
+    throw new Error(
+      "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID. Set both env vars before enabling Telegram webhook commands."
+    );
+  }
+
+  if (!webhookSecret) {
+    throw new Error(
+      "Missing TELEGRAM_WEBHOOK_SECRET. Set it and configure the same value when registering the Telegram webhook."
+    );
+  }
+
+  return {
+    botToken: config.botToken,
+    chatId: config.chatId,
+    webhookSecret
   };
 }
