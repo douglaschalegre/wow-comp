@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 const initialPlayers = [
   { id: 1, name: "Herseter", faction: "HORDE", region: "US", itemLevel: 602, score: 91.4 },
